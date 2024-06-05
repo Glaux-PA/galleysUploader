@@ -12,6 +12,15 @@
 
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 
+use PKP\core\JSONMessage;
+use APP\facades\Repo;
+use PKP\file\TemporaryFileManager;
+use PKP\plugins\ImportExportPlugin;
+use APP\template\TemplateManager;
+
+
+
+
 class GalleysUploaderPlugin extends ImportExportPlugin
 {
 	function register($category, $path, $mainContextId = null)
@@ -98,7 +107,7 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 			case 'galleysUploadFile':
 				if (!$request->checkCSRF()) throw new Exception('CSRF mismatch!');
 
-				AppLocale::requireComponents(LOCALE_COMPONENT_PKP_SUBMISSION);
+				//AppLocale::requireComponents(LOCALE_COMPONENT_PKP_SUBMISSION);
 				$temporaryFileId = $request->getUserVar('temporaryFileId');
 				$temporaryFileDao = DAORegistry::getDAO('TemporaryFileDAO'); /* @var $temporaryFileDao TemporaryFileDAO */
 				$user = $request->getUser();
@@ -130,9 +139,6 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 					header('Content-Type: application/json');
 					return $json->getString();
 				}
-
-
-
 
 				define('SEPARATOR', '-'); //TODO: Quitar de aquí
 				$mainHTMLGalleys = [];
@@ -174,8 +180,7 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 
 
 
-					$submissionDAO = \DAORegistry::getDAO('SubmissionDAO');
-					$submission = $submissionDAO->getById($idSubmission);
+					$submission = Repo::submission()->get($idSubmission);
 					if (is_null($submission)) {
 						continue;
 					}
@@ -184,8 +189,6 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 
 
 					$publication = $submission->getLatestPublication();
-
-					$articleGalleyDao = \DAORegistry::getDAO('ArticleGalleyDAO');
 
 
 
@@ -198,37 +201,39 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 					$locale = isset($localeList[$galleyLocale]) ? $localeList[$galleyLocale] : $context->getPrimaryLocale();
 
 					//TODO: que non se recuperen, sempre as galeradas da publicación
-					$currentGalleys = $articleGalleyDao->getByPublicationId($publication->getId())->toArray();
+					$currentGalleys = Repo::galley()
+						->getCollector()
+						->filterByPublicationIds([$idSubmission])
+						->getMany()->toArray();
 
 					foreach ($currentGalleys as $galley) {
 						if ($galley->getLabel() === $label && $galley->getLocale() === $locale) {
-							$articleGalleyDao->deleteObject($galley);
+							Repo::galley()->delete($galley);
 						}
 					}
 
-
-					$articleGalley = $articleGalleyDao->newDataObject();
+					//TODO: En vez dos setData podían ir como un array no constructor
+					$articleGalley = Repo::galley()->newDataObject();
 					$articleGalley->setData('publicationId', $publication->getId());
 					$articleGalley->setLabel($label);
 					$articleGalley->setLocale($locale);
 					$articleGalley->setData('urlPath', null);
 					$articleGalley->setData('urlRemote', null);
 					$articleGalley->setSequence($this->getSequence($extension));
-					$articleGalleyId = $articleGalleyDao->insertObject($articleGalley);
+					$articleGalleyId = Repo::galley()->add($articleGalley);
 
-					import('lib.pkp.classes.file.TemporaryFileManager');
-					$temporaryFileManager = new \TemporaryFileManager();
+
+					$temporaryFileManager = new TemporaryFileManager();
 					$temporaryFilename = tempnam($temporaryFileManager->getBasePath(), 'src');
 
 					file_put_contents($temporaryFilename, file_get_contents("zip://" . $temporaryFilePath . "#" . $currentFileName));
 
 
 
-					$submissionFileDao = \DAORegistry::getDAO('SubmissionFileDAO');
-					$submissionFile = $submissionFileDao->newDataObject();
 
+					$submissionFile = Repo::submissionFile()->newDataObject();
+					$submissionDir = Repo::submissionFile()->getSubmissionDir($context->getId(), $submission->getId());
 
-					$submissionDir = \Services::get('submissionFile')->getSubmissionDir($context->getId(), $submission->getId());
 					$fileId = \Services::get('file')->add(
 						$temporaryFilename,
 						$submissionDir . '/' . uniqid() . '.' . $extension
@@ -252,10 +257,12 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 					$submissionFile->setData('genreId',  $genre->getId());
 
 
-					$submissionFile = \Services::get('submissionFile')->add($submissionFile, $request);
+					Repo::submissionFile()->add($submissionFile);
 
-					$articleGalley->setFileId($submissionFile->getId());
-					$articleGalleyDao->updateObject($articleGalley);
+					Repo::galley()->edit($articleGalley, ['fileId' => $submissionFile->getId()]);
+
+
+
 
 					if (strtoupper($extension) === 'HTML' || strtoupper($extension) === 'XML') { //TODO
 						$mainHTMLGalleys[$submission->getId()][] = $submissionFile->getId();
@@ -298,8 +305,9 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 							$idSubmission = substr($fileNameWithoutLastPart, 1 + strrpos($fileNameWithoutLastPart, SEPARATOR));
 						}
 
-						$submissionDAO = \DAORegistry::getDAO('SubmissionDAO');
-						$submission = $submissionDAO->getById($idSubmission);
+
+						$submission = Repo::submission()->get($idSubmission);
+
 						if (is_null($submission)) {
 							continue;
 						}
@@ -328,11 +336,12 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 							file_put_contents($temporaryFilename, file_get_contents("zip://" . $temporaryFilePath . "#" . $currentFileName));
 
 
-							$submissionFileDao = \DAORegistry::getDAO('SubmissionFileDAO');
-							$submissionFile = $submissionFileDao->newDataObject();
+							$submissionFile = Repo::submissionFile()->newDataObject();
 
 
-							$submissionDir = \Services::get('submissionFile')->getSubmissionDir($context->getId(), $submission->getId());
+
+							$submissionDir = Repo::submissionFile()->getSubmissionDir($context->getId(), $submission->getId());
+
 							$fileId = \Services::get('file')->add(
 								$temporaryFilename,
 								$submissionDir . '/' . uniqid() . '.' . $extension
@@ -354,7 +363,7 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 							$submissionFile->setData('genreId',  $genre->getId()); //TODO
 
 
-							$submissionFile = \Services::get('submissionFile')->add($submissionFile, $request);
+							Repo::submissionFile()->add($submissionFile);
 						}
 						/*$articleGalley->setFileId($submissionFile->getId());
 					$articleGalleyDao->insertObject($articleGalley);*/
