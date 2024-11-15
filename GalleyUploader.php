@@ -40,17 +40,17 @@ class GalleyUploader {
             return $this->generateJsonValidationError(["File can't be opened"]);
         }
       
-        $mainHTMLGalley=$this->processMainFiles();
+        $mainGalleys=$this->processMainFiles();
 
-        if (!empty($mainHTMLGalleys)) {
-          $this->processDependentFiles($mainHTMLGalley);
+        if (!empty($mainGalleys)) {
+          $this->processDependentFiles($mainGalleys);
         }
       
 		$this->zipArchive->close();
     }
 
     function processMainFiles(){
-        $mainHTMLGalleys = [];
+        $mainGalleys = [];
         for ($i = 0; $i < $this->zipArchive->numFiles; $i++) {
 
             $currentFileName = $this->zipArchive->getNameIndex($i);
@@ -94,22 +94,25 @@ class GalleyUploader {
             $articleGalleyDao->updateObject($articleGalley);
 
             if ($label === 'HTML' || $label === 'XML') { 
-                $mainHTMLGalleys[$submission->getId()][] = $submissionFile->getId();
+                $mainGalleys[$submission->getId()][] = $submissionFile->getId();
             }
         }
-        return $mainHTMLGalleys;
+        return $mainGalleys;
     }
 
-    function processDependentFiles($mainHTMLGalleys){
+    function processDependentFiles($mainGalleys){
  
         for ($i = 0; $i < $this->zipArchive->numFiles; $i++) {
     
             $currentFileName = $this->zipArchive->getNameIndex($i);
             if ($currentFileName == '.' || $currentFileName == '..') continue;
             $currentFileStat = $this->zipArchive->statIndex($i);
-            if ($this->fileProcessor->isFolder($currentFileStat))  ontinue;
+            if ($this->fileProcessor->isFolder($currentFileStat))  continue;
             
-            $fileInfo = pathinfo($currentFileName);
+            $fileInfo = $this->fileProcessor->getFileInfo($currentFileName);
+            $label = strtoupper($fileInfo["extension"]);
+
+            if ($label !== 'JPG' && $label !== 'CSS') continue;
 
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
         
@@ -131,9 +134,9 @@ class GalleyUploader {
             */
             import('lib.pkp.classes.file.TemporaryFileManager');
 
-            foreach ($mainHTMLGalleys[$submission->getId()] as $mainHTMLGalley) {
+            foreach ($mainGalleys[$submission->getId()] as $mainHTMLGalley) {
 
-                $fileId = $this->saveFileToRepo($submission, $fileInfo, $currentFileName);
+                $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName,$this->temporaryFilePath);
                 $this->dependentFileManager->createDependentFile($fileId, $submission, $mainHTMLGalley, $fileInfo, $locale);
         
             }
