@@ -17,7 +17,7 @@ use PKP\file\TemporaryFileManager;
 use PKP\plugins\ImportExportPlugin;
 use APP\template\TemplateManager;
 
-require_once 'GalleysUploader.php';
+require_once 'GalleyUploader.php';
 
 
 class GalleysUploaderPlugin extends ImportExportPlugin

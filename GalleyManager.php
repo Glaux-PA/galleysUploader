@@ -1,6 +1,6 @@
 <?php
-
 use APP\facades\Repo;
+
 class GalleyManager {
 
     public function createGalley($publication, $extension, $locale) {

@@ -1,6 +1,7 @@
 <?php
-
 use APP\facades\Repo;
+use APP\core\Application;
+
 class FileProcessor {
 
     private $zipArchive;
@@ -26,12 +27,12 @@ class FileProcessor {
     }
 
    public function saveFileToRepo($submission, $fileInfo, $currentFileName) {
-    
-        $temporaryFileManager = new \TemporaryFileManager();
+   
+        $temporaryFileManager = new TemporaryFileManager();
         $temporaryFilename = tempnam($temporaryFileManager->getBasePath(), 'src');
         file_put_contents($temporaryFilename, file_get_contents("zip://" . $this->temporaryFilePath . "#" . $currentFileName));
         $submissionDir = Repo::submissionFile()->getSubmissionDir(Application::get()->getRequest()->getContext()->getId(), $submission->getId());
-        return \Services::get('file')->add(
+        return Services::get('file')->add(
                     $temporaryFilename,
                     $submissionDir . '/' . uniqid() . '.' . $fileInfo["extension"]
                 );
