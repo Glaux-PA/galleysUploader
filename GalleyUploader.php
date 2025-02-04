@@ -14,6 +14,9 @@ class GalleyUploader {
         'es' => 'es_ES',
         'en' => 'en_US'
     ];
+    private const EXCLUDED_PATHS = [
+        '__MACOSX'
+    ];
 
     private $fileProcessor;
     private $galleyManager;
@@ -36,17 +39,26 @@ class GalleyUploader {
         if (!$this->fileProcessor->isAZip($zipOpened)){
             return $this->generateJsonValidationError(["File is not a ZIP"]);
 
-        }elseif(!$zipOpened){    
+        }elseif(!$zipOpened){
             return $this->generateJsonValidationError(["File can't be opened"]);
         }
-      
+
         $mainGalleys=$this->processMainFiles();
 
         if (!empty($mainGalleys)) {
           $this->processDependentFiles($mainGalleys);
         }
-      
+
 		$this->zipArchive->close();
+    }
+
+    private function isValidFile($fileName) {
+        if ($fileName == '.' || $fileName == '..') return false;
+
+        foreach(self::EXCLUDED_PATHS as $excluded) {
+            if (stripos($fileName, $excluded) !== false) return false;
+        }
+        return true;
     }
 
     function processMainFiles(){
@@ -55,45 +67,45 @@ class GalleyUploader {
 
             $currentFileName = $this->zipArchive->getNameIndex($i);
 
-            if ($currentFileName == '.' || $currentFileName == '..') continue;
+            if( !$this->isValidFile($currentFileName)) continue;
 
             $currentFileStat = $this->zipArchive->statIndex($i);
 
             if ($this->fileProcessor->isFolder($currentFileStat))  continue;
-        
+
             $fileInfo = $this->fileProcessor->getFileInfo($currentFileName);
             $label = strtoupper($fileInfo["extension"]);
-    
+
             if ($label === 'JPG' || $label === 'CSS') continue;
-          
+
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
-        
+
             list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
-    
+
             $submissionDAO = \DAORegistry::getDAO('SubmissionDAO');
 			$submission = $submissionDAO->getById($idSubmission);
             if (is_null($submission)) continue;
-           
+
             $publication = $submission->getLatestPublication();
 
             if (is_null($publication)) continue;
             $articleGalleyDao = \DAORegistry::getDAO('ArticleGalleyDAO');
-       
+
             $locale = isset(self::LOCALE_MAP[$galleyLocale]) ? self::LOCALE_MAP[$galleyLocale] : $this->getContext()->getPrimaryLocale();
             $this->galleyManager->deleteExistingGalleys($publication,$label, $locale);
-            
-    
+
+
             $articleGalley = $this->galleyManager->createGalley($publication, $fileInfo["extension"], $locale);
             $articleGalleyId = $articleGalleyDao->insertObject($articleGalley);
 
             $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName,$this->temporaryFilePath);
             $submissionFile=$this->createSubmissionFile($fileId,$submission,$fileInfo,  $articleGalleyId);
-  
-    
+
+
             $articleGalley->setFileId($submissionFile->getId());
             $articleGalleyDao->updateObject($articleGalley);
 
-            if ($label === 'HTML' || $label === 'XML') { 
+            if ($label === 'HTML' || $label === 'XML') {
                 $mainGalleys[$submission->getId()][] = $submissionFile->getId();
             }
         }
@@ -101,22 +113,24 @@ class GalleyUploader {
     }
 
     function processDependentFiles($mainGalleys){
- 
+
         for ($i = 0; $i < $this->zipArchive->numFiles; $i++) {
-    
+
             $currentFileName = $this->zipArchive->getNameIndex($i);
-            if ($currentFileName == '.' || $currentFileName == '..') continue;
+
+            if( !$this->isValidFile($currentFileName)) continue;
+
             $currentFileStat = $this->zipArchive->statIndex($i);
             if ($this->fileProcessor->isFolder($currentFileStat))  continue;
-            
+
             $fileInfo = $this->fileProcessor->getFileInfo($currentFileName);
             $label = strtoupper($fileInfo["extension"]);
 
             if ($label !== 'JPG' && $label !== 'CSS') continue;
 
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
-        
-    
+
+
             list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
 
             $submissionDAO = \DAORegistry::getDAO('SubmissionDAO');
@@ -138,7 +152,7 @@ class GalleyUploader {
 
                 $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName,$this->temporaryFilePath);
                 $this->dependentFileManager->createDependentFile($fileId, $submission, $mainHTMLGalley, $fileInfo, $locale);
-        
+
             }
             /*$articleGalley->setFileId($submissionFile->getId());
         $articleGalleyDao->insertObject($articleGalley);*/
