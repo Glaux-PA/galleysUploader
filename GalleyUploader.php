@@ -9,7 +9,8 @@ require_once 'FileProcessor.php';
 require_once 'GalleyManager.php';
 require_once 'DependentFileManager.php';
 
-class GalleyUploader {
+class GalleyUploader
+{
 
     private $zipArchive;
     private $temporaryFilePath;
@@ -19,12 +20,16 @@ class GalleyUploader {
         'es' => 'es_ES',
         'en' => 'en_US'
     ];
+    private const EXCLUDED_PATHS = [
+        '__MACOSX'
+    ];
 
     private $fileProcessor;
     private $galleyManager;
     private $dependentFileManager;
 
-    function __construct($temporaryFilePath, $zipArchive, $plugin) {
+    function __construct($temporaryFilePath, $zipArchive, $plugin)
+    {
         $this->zipArchive = $zipArchive;
         $this->temporaryFilePath = $temporaryFilePath;
         $this->plugin = $plugin;
@@ -35,99 +40,112 @@ class GalleyUploader {
     }
 
 
-    public function uploadFile(){
+    public function uploadFile()
+    {
         $zipOpened = $this->zipArchive->open($this->temporaryFilePath);
 
-        if (!$this->fileProcessor->isAZip($zipOpened)){
+        if (!$this->fileProcessor->isAZip($zipOpened)) {
             return $this->generateJsonValidationError(["File is not a ZIP"]);
-
-        }elseif(!$zipOpened){
+        } elseif (!$zipOpened) {
             return $this->generateJsonValidationError(["File can't be opened"]);
         }
-      
-        
-        $mainGalleys=$this->processMainFiles();
+
+
+        $mainGalleys = $this->processMainFiles();
 
         if (!empty($mainGalleys)) {
-          $this->processDependentFiles($mainGalleys);
+            $this->processDependentFiles($mainGalleys);
         }
-      
-		$this->zipArchive->close();
+
+        $this->zipArchive->close();
     }
 
-    function processMainFiles(){
+
+    private function isValidFile($fileName)
+    {
+        if ($fileName == '.' || $fileName == '..') return false;
+
+        foreach (self::EXCLUDED_PATHS as $excluded) {
+            if (stripos($fileName, $excluded) !== false) return false;
+        }
+        return true;
+    }
+
+    function processMainFiles()
+    {
         $mainGalleys = [];
         for ($i = 0; $i < $this->zipArchive->numFiles; $i++) {
 
             $currentFileName = $this->zipArchive->getNameIndex($i);
 
-            if ($currentFileName == '.' || $currentFileName == '..') continue;
+            if( !$this->isValidFile($currentFileName)) continue;
 
             $currentFileStat = $this->zipArchive->statIndex($i);
 
             if ($this->fileProcessor->isFolder($currentFileStat))  continue;
-    
+
             $fileInfo = $this->fileProcessor->getFileInfo($currentFileName);
             $label = strtoupper($fileInfo["extension"]);
-    
+
             if ($label === 'JPG' || $label === 'CSS') continue;
-    
+
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
-    
+
             list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
-    
+
             $submission = Repo::submission()->get($idSubmission);
             if (is_null($submission)) continue;
-           
+
 
             $publication = $submission->getLatestPublication();
 
             if (is_null($publication)) continue;
-       
+
             $locale = isset(self::LOCALE_MAP[$galleyLocale]) ? self::LOCALE_MAP[$galleyLocale] : $this->getContext()->getPrimaryLocale();
-            $this->galleyManager->deleteExistingGalleys($idSubmission,$fileInfo["extension"], $locale);
-            
-    
+            $this->galleyManager->deleteExistingGalleys($idSubmission, $fileInfo["extension"], $locale);
+
+
             $articleGalley = $this->galleyManager->createGalley($publication, $fileInfo["extension"], $locale);
             $articleGalleyId = Repo::galley()->add($articleGalley);
 
             $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
-            $submissionFile=$this->createSubmissionFile($fileId,$submission,$fileInfo,  $articleGalleyId);
+            $submissionFile = $this->createSubmissionFile($fileId, $submission, $fileInfo,  $articleGalleyId);
 
             Repo::galley()->edit($articleGalley, ['fileId' => $submissionFile->getId()]);
-    
-            if ($label === 'HTML' || $label === 'XML') { 
+
+            if ($label === 'HTML' || $label === 'XML') {
                 $mainGalleys[$submission->getId()][] = $submissionFile->getId();
             }
-
-
         }
         return $mainGalleys;
     }
 
-    function processDependentFiles($mainGalleys){
- 
+    function processDependentFiles($mainGalleys)
+    {
+
         for ($i = 0; $i < $this->zipArchive->numFiles; $i++) {
-    
+
             $currentFileName = $this->zipArchive->getNameIndex($i);
-            if ($currentFileName == '.' || $currentFileName == '..') continue;
+
+            if( !$this->isValidFile($currentFileName)) continue;
+
 
             $currentFileStat = $this->zipArchive->statIndex($i);
             if ($this->fileProcessor->isFolder($currentFileStat))  continue;
-          
+
             $fileInfo = $this->fileProcessor->getFileInfo($currentFileName);
             $label = strtoupper($fileInfo["extension"]);
 
             if ($label !== 'JPG' && $label !== 'CSS') continue;
 
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
-            
+
             list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
 
             $submission = Repo::submission()->get($idSubmission);
 
             if (is_null($submission)) continue;
-            
+
             $locale = isset(self::LOCALE_MAP[$galleyLocale]) ? self::LOCALE_MAP[$galleyLocale] : $this->getContext()->getPrimaryLocale();
 
 
@@ -143,14 +161,13 @@ class GalleyUploader {
 
                 $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
                 $this->dependentFileManager->createDependentFile($fileId, $submission, $mainHTMLGalley, $fileInfo, $locale);
-        
             }
             /*$articleGalley->setFileId($submissionFile->getId());
         $articleGalleyDao->insertObject($articleGalley);*/
         }
-
     }
-    private function extractSubmissionData($fileName) {
+    private function extractSubmissionData($fileName)
+    {
         $lastPart = substr($fileName, strrpos($fileName, self::SEPARATOR) + 1);
         if (is_numeric($lastPart)) {
             return [$lastPart, -1];
@@ -159,11 +176,13 @@ class GalleyUploader {
         return [substr($fileNameWithoutLastPart, strrpos($fileNameWithoutLastPart, self::SEPARATOR) + 1), strtolower($lastPart)];
     }
 
-    private function getContext() {
+    private function getContext()
+    {
         return Application::get()->getRequest()->getContext();
     }
 
-    private function createSubmissionFile($fileId, $submission, $fileInfo, $assocId) {
+    private function createSubmissionFile($fileId, $submission, $fileInfo, $assocId)
+    {
         $submissionFile = Repo::submissionFile()->newDataObject();
         $submissionFile->setData('fileId', $fileId);
         $submissionFile->setData('fileStage', SUBMISSION_FILE_PROOF);
@@ -185,15 +204,13 @@ class GalleyUploader {
         return $submissionFile;
     }
 
-    private function generateJsonValidationError($validationErrors){
-        $request=Application::get()->getRequest();
+    private function generateJsonValidationError($validationErrors)
+    {
+        $request = Application::get()->getRequest();
         $templateMgr = TemplateManager::getManager($request);
         $templateMgr->assign('validationErrors', $validationErrors);
         $json = new JSONMessage(true, $templateMgr->fetch($this->plugin->getTemplateResource('results.tpl')));
         header('Content-Type: application/json');
         return $json->getString();
-
     }
-
 }
-
