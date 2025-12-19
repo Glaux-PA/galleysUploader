@@ -85,6 +85,8 @@ class GalleyUploader {
             $submissionDAO = \DAORegistry::getDAO('SubmissionDAO');
 			$submission = $submissionDAO->getById($idSubmission);
             if (is_null($submission)) continue;
+            if($submission->getJournalId() !== $this->getContext()->getId()) continue;
+
 
             $publication = $submission->getLatestPublication();
 
