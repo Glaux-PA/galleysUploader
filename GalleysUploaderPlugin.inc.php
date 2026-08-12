@@ -10,7 +10,6 @@
  * @brief Plugin class for the Galleys Import plugin.
  */
 
-import('lib.pkp.classes.plugins.ImportExportPlugin');
 
 use PKP\core\JSONMessage;
 use PKP\file\TemporaryFileManager;
