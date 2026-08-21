@@ -1,4 +1,4 @@
-Plugin for OJS  3.4.0
+Plugin for OJS 3.5.x
 
 
 ## Instructions

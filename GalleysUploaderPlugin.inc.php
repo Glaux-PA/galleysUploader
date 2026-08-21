@@ -91,7 +91,6 @@ class GalleysUploaderPlugin extends ImportExportPlugin
 				break;
 			case 'galleysUploadTempFile':
 				$user = $request->getUser();
-				import('lib.pkp.classes.file.TemporaryFileManager');
 				$temporaryFileManager = new TemporaryFileManager();
 				$temporaryFile = $temporaryFileManager->handleUpload('uploadedFile', $user->getId());
 				if ($temporaryFile) {

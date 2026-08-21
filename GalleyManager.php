@@ -14,10 +14,10 @@ class GalleyManager {
         return $articleGalley;
     }
 
-    public function deleteExistingGalleys($idSubmission, $extension, $locale) {
+    public function deleteExistingGalleys($publicationId, $extension, $locale) {
         $currentGalleys = Repo::galley()
             ->getCollector()
-            ->filterByPublicationIds([$idSubmission])
+            ->filterByPublicationIds([$publicationId])
             ->getMany()
             ->toArray();
 

@@ -17,8 +17,8 @@ class GalleyUploader
     private $plugin;
     private const SEPARATOR = "-";
     private const LOCALE_MAP = [
-        'es' => 'es_ES',
-        'en' => 'en_US'
+        'es' => 'es',
+        'en' => 'en'
     ];
     private const EXCLUDED_PATHS = [
         '__MACOSX'
@@ -102,7 +102,11 @@ class GalleyUploader
             if (is_null($publication)) continue;
 
             $locale = isset(self::LOCALE_MAP[$galleyLocale]) ? self::LOCALE_MAP[$galleyLocale] : $this->getContext()->getPrimaryLocale();
-            $this->galleyManager->deleteExistingGalleys($idSubmission, $fileInfo["extension"], $locale);
+            $this->galleyManager->deleteExistingGalleys(
+                $publication->getId(),
+                $fileInfo["extension"],
+                $locale
+            );
 
 
             $articleGalley = $this->galleyManager->createGalley($publication, $fileInfo["extension"], $locale);
@@ -111,7 +115,6 @@ class GalleyUploader
             $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
             $submissionFile = $this->createSubmissionFile($fileId, $submission, $fileInfo,  $articleGalleyId);
 
-            Repo::galley()->edit($articleGalley, ['fileId' => $submissionFile->getId()]);
 
             if ($label === 'HTML' || $label === 'XML') {
                 $mainGalleys[$submission->getId()][] = $submissionFile->getId();
@@ -155,7 +158,6 @@ class GalleyUploader
         $articleGalley->setLabel(strtoupper($extension));
         $articleGalley->setLocale($locale);
             */
-            import('lib.pkp.classes.file.TemporaryFileManager');
 
             foreach ($mainGalleys[$submission->getId()] as $mainHTMLGalley) {
 
@@ -188,7 +190,10 @@ class GalleyUploader
         $submissionFile->setData('fileStage', SUBMISSION_FILE_PROOF);
         $submissionFile->setData('name', $fileInfo["fileBase"], $this->getContext()->getPrimaryLocale());
         $submissionFile->setData('submissionId', $submission->getId());
-        $submissionFile->setSubmissionLocale($submission->getLocale());
+        $submissionFile->setData(
+            'submissionLocale',
+            $submission->getData('locale')
+        );
         $submissionFile->setData('assocType', ASSOC_TYPE_REPRESENTATION); //TODO
         $submissionFile->setData('assocId',  $assocId);
 

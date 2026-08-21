@@ -2,6 +2,8 @@
 use APP\facades\Repo;
 use APP\core\Application;
 
+use PKP\file\TemporaryFileManager;
+
 class FileProcessor {
 
     private $zipArchive;
@@ -32,7 +34,7 @@ class FileProcessor {
         $temporaryFilename = tempnam($temporaryFileManager->getBasePath(), 'src');
         file_put_contents($temporaryFilename, file_get_contents("zip://" . $this->temporaryFilePath . "#" . $currentFileName));
         $submissionDir = Repo::submissionFile()->getSubmissionDir(Application::get()->getRequest()->getContext()->getId(), $submission->getId());
-        return Services::get('file')->add(
+        return app()->get('file')->add(
                     $temporaryFilename,
                     $submissionDir . '/' . uniqid() . '.' . $fileInfo["extension"]
                 );
