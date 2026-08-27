@@ -4,6 +4,7 @@ use PKP\core\JSONMessage;
 use APP\facades\Repo;
 use APP\template\TemplateManager;
 use APP\core\Application;
+use PKP\submissionFile\SubmissionFile;
 
 require_once 'FileProcessor.php';
 require_once 'GalleyManager.php';
@@ -91,9 +92,13 @@ class GalleyUploader
 
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
 
-            list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
+            [$idSubmission, $galleyLocale] = $this->extractSubmissionData($fileInfo['fileName']);
 
-            $submission = Repo::submission()->get($idSubmission);
+            $submission = Repo::submission()->get(
+                $idSubmission,
+                $this->getContext()->getId()
+            );
+
             if (is_null($submission)) continue;
 
 
@@ -115,6 +120,9 @@ class GalleyUploader
             $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
             $submissionFile = $this->createSubmissionFile($fileId, $submission, $fileInfo,  $articleGalleyId);
 
+            Repo::galley()->edit($articleGalley, [
+                'submissionFileId' => $submissionFile->getId(),
+            ]);
 
             if ($label === 'HTML' || $label === 'XML') {
                 $mainGalleys[$submission->getId()][] = $submissionFile->getId();
@@ -143,9 +151,12 @@ class GalleyUploader
 
             if (strrpos($fileInfo["fileName"], self::SEPARATOR) === false) continue;
 
-            list($idSubmission, $galleyLocale) = $this->extractSubmissionData($fileInfo['fileName']);
+            [$idSubmission] = $this->extractSubmissionData($fileInfo['fileName']);
 
-            $submission = Repo::submission()->get($idSubmission);
+            $submission = Repo::submission()->get(
+                $idSubmission,
+                $this->getContext()->getId()
+            );
 
             if (is_null($submission)) continue;
 
@@ -162,7 +173,7 @@ class GalleyUploader
             foreach ($mainGalleys[$submission->getId()] as $mainHTMLGalley) {
 
                 $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
-                $this->dependentFileManager->createDependentFile($fileId, $submission, $mainHTMLGalley, $fileInfo, $locale);
+                $this->dependentFileManager->createDependentFile($fileId, $submission, $mainHTMLGalley, $fileInfo);
             }
             /*$articleGalley->setFileId($submissionFile->getId());
         $articleGalleyDao->insertObject($articleGalley);*/
@@ -187,19 +198,22 @@ class GalleyUploader
     {
         $submissionFile = Repo::submissionFile()->newDataObject();
         $submissionFile->setData('fileId', $fileId);
-        $submissionFile->setData('fileStage', SUBMISSION_FILE_PROOF);
-        $submissionFile->setData('name', $fileInfo["fileBase"], $this->getContext()->getPrimaryLocale());
-        $submissionFile->setData('submissionId', $submission->getId());
         $submissionFile->setData(
-            'submissionLocale',
-            $submission->getData('locale')
+            'fileStage',
+            SubmissionFile::SUBMISSION_FILE_PROOF
         );
-        $submissionFile->setData('assocType', ASSOC_TYPE_REPRESENTATION); //TODO
+        $submissionLocale = $submission->getData('locale');
+
+        $submissionFile->setData('name', $fileInfo["fileBase"], $submissionLocale);
+        $submissionFile->setData('submissionId', $submission->getId());
+        $submissionFile->setData('submissionLocale', $submissionLocale);
+        $submissionFile->setData(
+            'assocType',
+            Application::ASSOC_TYPE_GALLEY
+        );
+
         $submissionFile->setData('assocId',  $assocId);
 
-        $submissionFile->setData('dateUploaded', Core::getCurrentDate());
-        $submissionFile->setData('dateModified', Core::getCurrentDate());
-        $submissionFile->setData('originalFileName', $fileInfo["fileBase"]); //TODO: non estour seguro
         $submissionFile->setViewable(true);
 
         $genreDao = \DAORegistry::getDAO('GenreDAO');
