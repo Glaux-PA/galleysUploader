@@ -160,8 +160,6 @@ class GalleyUploader
 
             if (is_null($submission)) continue;
 
-            $locale = isset(self::LOCALE_MAP[$galleyLocale]) ? self::LOCALE_MAP[$galleyLocale] : $this->getContext()->getPrimaryLocale();
-
 
             /*	$articleGalleyDao = \DAORegistry::getDAO('ArticleGalleyDAO');
         $articleGalley = $articleGalleyDao->newDataObject();
