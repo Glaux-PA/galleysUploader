@@ -14,10 +14,6 @@ class PublicationFormatUploader
     private $zipArchive;
     private $temporaryFilePath;
     private const SEPARATOR = '-';
-    private const LOCALE_MAP = [
-        'es' => 'es',
-        'en' => 'en',
-    ];
     private const EXCLUDED_PATHS = [
         '__MACOSX',
     ];
@@ -111,9 +107,12 @@ class PublicationFormatUploader
                 if ($label === 'JPG' || $label === 'CSS') {
                     $target = 'dependent:' . $submissionId . ':' . strtolower($fileInfo['fileBase']);
                 } else {
+                    $submission = $localeToken === null
+                        ? Repo::submission()->get($submissionId, $this->getContext()->getId())
+                        : null;
                     $target = 'proof:' . $submissionId . ':'
                         . $this->publicationFormatManager->normalizeIdentifier($fileInfo['extension']) . ':'
-                        . strtolower($this->resolveLanguage($localeToken));
+                        . strtolower($this->resolveLanguage($localeToken, $submission));
                 }
 
                 $targets[$target][] = ['index' => $i, 'file' => $currentFileName];
@@ -180,7 +179,6 @@ class PublicationFormatUploader
                 }
 
                 [$submissionId, $localeToken] = $this->extractSubmissionData($fileInfo['fileName']);
-                $language = $this->resolveLanguage($localeToken);
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
@@ -189,6 +187,7 @@ class PublicationFormatUploader
                         ])
                     );
                 }
+                $language = $this->resolveLanguage($localeToken, $submission);
 
                 $publication = $submission->getLatestPublication();
                 if (!$publication) {
@@ -410,7 +409,6 @@ class PublicationFormatUploader
                 }
 
                 [$submissionId, $localeToken] = $this->extractSubmissionData($fileInfo['fileName']);
-                $this->resolveLanguage($localeToken);
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
@@ -419,6 +417,7 @@ class PublicationFormatUploader
                         ])
                     );
                 }
+                $this->resolveLanguage($localeToken, $submission);
 
                 $parentProofIds = $mainProofs[$submission->getId()] ?? [];
                 if (empty($parentProofIds)) {
@@ -545,7 +544,7 @@ class PublicationFormatUploader
         $lastPart = array_pop($parts);
         $localeToken = null;
         if (!preg_match('/^[1-9][0-9]*$/', $lastPart)) {
-            $localeToken = strtolower($lastPart);
+            $localeToken = $lastPart;
             if (!$parts) {
                 throw new RuntimeException(
                     __('plugins.importexport.publicationFormatsUploader.error.invalidFileName')
@@ -565,29 +564,22 @@ class PublicationFormatUploader
         return [(int) $lastPart, $localeToken];
     }
 
-    private function resolveLanguage(?string $localeToken): string
+    private function resolveLanguage(?string $localeToken, $submission = null): string
     {
-        if ($localeToken === null) {
-            $language = (string) $this->getContext()->getPrimaryLocale();
-            if ($language === '') {
-                throw new RuntimeException(
-                    __('plugins.importexport.publicationFormatsUploader.error.invalidLocale', [
-                        'locale' => '',
-                    ])
-                );
-            }
-            return $language;
-        }
+        $language = $localeToken === null
+            ? (string) ($submission ? $submission->getData('locale') : '')
+            : $localeToken;
+        $supportedLocales = (array) $this->getContext()->getSupportedSubmissionLocales();
 
-        if (!isset(self::LOCALE_MAP[$localeToken])) {
+        if ($language === '' || !in_array($language, $supportedLocales, true)) {
             throw new RuntimeException(
                 __('plugins.importexport.publicationFormatsUploader.error.invalidLocale', [
-                    'locale' => $localeToken,
+                    'locale' => $language,
                 ])
             );
         }
 
-        return self::LOCALE_MAP[$localeToken];
+        return $language;
     }
 
     private function getContext()
