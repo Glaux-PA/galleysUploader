@@ -1,28 +1,107 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: publicationFormatsUploader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-01T11:05:35+00:00\n"
-"PO-Revision-Date: 2022-08-01 15:32+0000\n"
+"POT-Creation-Date: 2026-09-01T00:00:00+00:00\n"
+"PO-Revision-Date: 2026-09-01T00:00:00+00:00\n"
 "Last-Translator: PublicacionesAcademicas <info@publicacionesacademicas.es>\n"
-"Language-Team: Spanish <http://translate.pkp.sfu.ca/projects/ojs/"
-"Language: en_US\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: \n"
 
-msgid "plugins.importexport.galleysUploader.displayName"
-msgstr "Galleys Uploader"
+msgid "plugins.importexport.publicationFormatsUploader.displayName"
+msgstr "Publication Formats Uploader"
 
-msgid "plugins.importexport.galleysUploader.description"
-msgstr "An  OJS galleys uploader"
+msgid "plugins.importexport.publicationFormatsUploader.description"
+msgstr "Bulk upload publication format proof files for OMP."
 
-msgid "plugins.importexport.galleysUploader.settings"
-msgstr "Settings"
+msgid "plugins.importexport.publicationFormatsUploader.settings"
+msgstr "Upload publication formats"
 
-msgid "plugins.importexport.galleysUploader.instructions"
-msgstr "Select galleys file to upload"
+msgid "plugins.importexport.publicationFormatsUploader.instructions"
+msgstr "Select a ZIP archive containing publication format proof files."
 
-msgid "plugins.importexport.galleysUploader.upload"
+msgid "plugins.importexport.publicationFormatsUploader.upload"
 msgstr "Upload"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.notZip"
+msgstr "The selected file is not a ZIP archive."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.cannotOpen"
+msgstr "The ZIP archive could not be opened."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.selectFile"
+msgstr "Select a file to upload."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousFormat"
+msgstr "More than one publication format is named '{$extension}'. No format was changed."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidFormatIdentifier"
+msgstr "'{$extension}' is not a valid publication format identifier."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.physicalFormat"
+msgstr "The publication format '{$extension}' is physical and cannot receive a proof file."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.remoteFormat"
+msgstr "The publication format '{$extension}' uses a remote URL and cannot receive a proof file."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.duplicateTarget"
+msgstr "The archive contains more than one file for the same target: {$files}. None of them was processed."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidFileName"
+msgstr "The file name does not contain a valid submission ID."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId"
+msgstr "'{$submissionId}' is not a valid submission ID."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidLocale"
+msgstr "'{$locale}' is not a supported file-name locale."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.submissionNotFound"
+msgstr "No submission was found for ID {$submissionId} in this press."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.publicationNotFound"
+msgstr "Submission {$submissionId} has no publication."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousProof"
+msgstr "Publication format '{$format}' has more than one proof matching language {$locale}. No proof was changed."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.manuscriptGenreMissing"
+msgstr "The MANUSCRIPT file genre is not configured for this press."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentGenreMissing"
+msgstr "The {$genre} file genre is not configured for this press."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent"
+msgstr "Dependent file {$file} has no HTML or XML proof from the same submission in this upload."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentReplacement"
+msgstr "Could not complete dependent-file replacement for submission {$submissionId}: {$message}"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.file"
+msgstr "Could not process {$file}: {$message}"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.formatCreated"
+msgstr "Created publication format {$format} for submission {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.proofCreated"
+msgstr "Created {$locale} {$format} proof for submission {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.proofRevised"
+msgstr "Added a new revision to the {$locale} {$format} proof for submission {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.dependentCreated"
+msgstr "Created dependent file {$file} for submission {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.errors"
+msgstr "Errors"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.summary"
+msgstr "Upload summary"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.noChanges"
+msgstr "No files were changed."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.return"
+msgstr "Return"

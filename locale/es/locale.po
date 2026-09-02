@@ -1,28 +1,107 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: publicationFormatsUploader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-01T11:05:35+00:00\n"
-"PO-Revision-Date: 2022-08-01 15:32+0000\n"
+"POT-Creation-Date: 2026-09-01T00:00:00+00:00\n"
+"PO-Revision-Date: 2026-09-01T00:00:00+00:00\n"
 "Last-Translator: PublicacionesAcademicas <info@publicacionesacademicas.es>\n"
-"Language-Team: Spanish <http://translate.pkp.sfu.ca/projects/ojs/"
-"Language: es_ES\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: \n"
 
-msgid "plugins.importexport.galleysUploader.displayName"
-msgstr "Importador de galeradas"
+msgid "plugins.importexport.publicationFormatsUploader.displayName"
+msgstr "Cargador de formatos de publicación"
 
-msgid "plugins.importexport.galleysUploader.description"
-msgstr "Importa galeradas de forma automática"
+msgid "plugins.importexport.publicationFormatsUploader.description"
+msgstr "Carga por lotes archivos de prueba para formatos de publicación en OMP."
 
-msgid "plugins.importexport.galleysUploader.settings"
-msgstr "Configuración"
+msgid "plugins.importexport.publicationFormatsUploader.settings"
+msgstr "Cargar formatos de publicación"
 
-msgid "plugins.importexport.galleysUploader.instructions"
-msgstr "Seleccionar el archivo con las galeradas para subir"
+msgid "plugins.importexport.publicationFormatsUploader.instructions"
+msgstr "Seleccione un archivo ZIP que contenga los archivos de prueba de los formatos de publicación."
 
-msgid "plugins.importexport.galleysUploader.upload"
-msgstr "Subir"
+msgid "plugins.importexport.publicationFormatsUploader.upload"
+msgstr "Cargar"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.notZip"
+msgstr "El archivo seleccionado no es un archivo ZIP."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.cannotOpen"
+msgstr "No se pudo abrir el archivo ZIP."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.selectFile"
+msgstr "Seleccione un archivo para cargar."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousFormat"
+msgstr "Más de un formato de publicación se llama '{$extension}'. No se modificó ningún formato."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidFormatIdentifier"
+msgstr "'{$extension}' no es un identificador de formato de publicación válido."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.physicalFormat"
+msgstr "El formato de publicación '{$extension}' es físico y no puede recibir un archivo de prueba."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.duplicateTarget"
+msgstr "El archivo contiene más de un fichero para el mismo destino: {$files}. No se procesó ninguno."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidFileName"
+msgstr "El nombre del archivo no contiene un ID de envío válido."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId"
+msgstr "'{$submissionId}' no es un ID de envío válido."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidLocale"
+msgstr "'{$locale}' no es una configuración regional admitida en el nombre del archivo."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.remoteFormat"
+msgstr "El formato de publicación '{$extension}' utiliza una URL remota y no puede recibir un archivo de prueba."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.submissionNotFound"
+msgstr "No se encontró ningún envío con el ID {$submissionId} en esta editorial."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.publicationNotFound"
+msgstr "El envío {$submissionId} no tiene ninguna publicación."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousProof"
+msgstr "El formato de publicación '{$format}' tiene más de una prueba que coincide con el idioma {$locale}. No se modificó ninguna prueba."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.manuscriptGenreMissing"
+msgstr "El género de archivo MANUSCRIPT no está configurado para esta editorial."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentGenreMissing"
+msgstr "El género de archivo {$genre} no está configurado para esta editorial."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent"
+msgstr "El archivo dependiente {$file} no tiene una prueba HTML o XML del mismo envío en esta carga."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.dependentReplacement"
+msgstr "No se pudo completar el reemplazo de archivos dependientes del envío {$submissionId}: {$message}"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.file"
+msgstr "No se pudo procesar {$file}: {$message}"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.formatCreated"
+msgstr "Se creó el formato de publicación {$format} para el envío {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.proofCreated"
+msgstr "Se creó la prueba {$format} en {$locale} para el envío {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.proofRevised"
+msgstr "Se añadió una nueva revisión a la prueba {$format} en {$locale} del envío {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.dependentCreated"
+msgstr "Se creó el archivo dependiente {$file} para el envío {$submissionId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.errors"
+msgstr "Errores"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.summary"
+msgstr "Resumen de la carga"
+
+msgid "plugins.importexport.publicationFormatsUploader.result.noChanges"
+msgstr "No se modificó ningún archivo."
+
+msgid "plugins.importexport.publicationFormatsUploader.result.return"
+msgstr "Volver"

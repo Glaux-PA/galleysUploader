@@ -1,18 +1,25 @@
-Plugin for OJS 3.5.x
+# Publication Formats Uploader for OMP 3.5
 
+This import/export plugin bulk uploads proof files into OMP 3.5 publication formats.
+It is an OMP-specific implementation and targets OMP only.
 
-## Instructions
-### Plugin Installation Guide for OJS
+## Installation
 
-You can install this plugin in two ways:
+Install the plugin through **Dashboard > Website Settings > Plugins > Upload A New
+Plugin**, or extract the plugin directory under `plugins/importexport` in an OMP
+3.5 installation. Enable it from the plugin gallery after installation.
 
-#### 1. Upload via the OJS Web Interface
-- Go to the **Dashboard** > **Website Settings** > **Plugins**.
-- Click on **Upload a New Plugin**.
-- Select the plugin `.tar.gz` or `.zip` archive and upload it.
-- Once installed, make sure to **enable** the plugin.
+## ZIP naming contract
 
-#### 2. Manual Installation
-- Upload or extract the plugin folder into the appropriate directory:
-  - ojs/plugins/importexport
-- Activate plugin from plugin from "Website -> Plugins"
+Main proof files use this form:
+
+`<prefix>-<submissionId>[-<locale>].<extension>`
+
+The extension identifies the publication format (for example PDF, HTML, XML, or
+EPUB), and the optional locale is stored on the proof SubmissionFile. Existing
+formats are matched by an exact localized name. Ambiguous matches are reported
+and left unchanged.
+
+JPG and CSS files continue to be treated as dependent files. They must use the
+same submission identifier and be included with an HTML or XML proof for that
+submission in the same ZIP upload.
