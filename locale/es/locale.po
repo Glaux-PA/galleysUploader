@@ -20,7 +20,7 @@ msgid "plugins.importexport.publicationFormatsUploader.settings"
 msgstr "Cargar formatos de publicación"
 
 msgid "plugins.importexport.publicationFormatsUploader.instructions"
-msgstr "Seleccione un archivo ZIP que contenga los archivos de prueba de los formatos de publicación."
+msgstr "Seleccione un ZIP con pruebas llamadas <nombre>-[cap<idCapítulo>-][<configuraciónRegional>-]<idEnvío>.<extensión>."
 
 msgid "plugins.importexport.publicationFormatsUploader.upload"
 msgstr "Cargar"
@@ -52,6 +52,9 @@ msgstr "El nombre del archivo no contiene un ID de envío válido."
 msgid "plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId"
 msgstr "'{$submissionId}' no es un ID de envío válido."
 
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidChapterId"
+msgstr "'{$chapterId}' no es un ID de capítulo válido."
+
 msgid "plugins.importexport.publicationFormatsUploader.error.invalidLocale"
 msgstr "'{$locale}' no es una configuración regional admitida en el nombre del archivo."
 
@@ -64,6 +67,12 @@ msgstr "No se encontró ningún envío con el ID {$submissionId} en esta editori
 msgid "plugins.importexport.publicationFormatsUploader.error.publicationNotFound"
 msgstr "El envío {$submissionId} no tiene ninguna publicación."
 
+msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotFound"
+msgstr "No se encontró ningún capítulo con el ID {$chapterId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotInPublication"
+msgstr "El capítulo {$chapterId} no pertenece a la publicación más reciente del envío {$submissionId}."
+
 msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousProof"
 msgstr "El formato de publicación '{$format}' tiene más de una prueba que coincide con el idioma {$locale}. No se modificó ninguna prueba."
 
@@ -74,7 +83,7 @@ msgid "plugins.importexport.publicationFormatsUploader.error.dependentGenreMissi
 msgstr "El género de archivo {$genre} no está configurado para esta editorial."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent"
-msgstr "El archivo dependiente {$file} no tiene una prueba HTML o XML del mismo envío en esta carga."
+msgstr "El archivo dependiente {$file} no tiene una prueba HTML o XML del mismo envío, capítulo e idioma en esta carga."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.dependentReplacement"
 msgstr "No se pudo completar el reemplazo de archivos dependientes del envío {$submissionId}: {$message}"
@@ -105,3 +114,6 @@ msgstr "No se modificó ningún archivo."
 
 msgid "plugins.importexport.publicationFormatsUploader.result.return"
 msgstr "Volver"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.proofTargetMismatch"
+msgstr "OMP no guardó el idioma y la asignación de capítulo solicitados para la prueba."

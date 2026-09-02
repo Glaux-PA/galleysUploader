@@ -103,16 +103,20 @@ class PublicationFormatUploader
                     continue;
                 }
 
-                [$submissionId, $localeToken] = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionData = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionId = $submissionData['submissionId'];
+                $chapterId = $submissionData['chapterId'];
+                $localeToken = $submissionData['explicitLocale'];
+                $submission = $localeToken === null
+                    ? Repo::submission()->get($submissionId, $this->getContext()->getId())
+                    : null;
+                $language = $this->resolveLanguage($localeToken, $submission);
+                $proofTarget = $this->getParentProofTarget($submissionId, $chapterId, $language);
                 if ($label === 'JPG' || $label === 'CSS') {
-                    $target = 'dependent:' . $submissionId . ':' . strtolower($fileInfo['fileBase']);
+                    $target = 'dependent:' . $proofTarget . ':' . strtolower($fileInfo['fileBase']);
                 } else {
-                    $submission = $localeToken === null
-                        ? Repo::submission()->get($submissionId, $this->getContext()->getId())
-                        : null;
-                    $target = 'proof:' . $submissionId . ':'
-                        . $this->publicationFormatManager->normalizeIdentifier($fileInfo['extension']) . ':'
-                        . strtolower($this->resolveLanguage($localeToken, $submission));
+                    $target = 'proof:' . $proofTarget . ':'
+                        . $this->publicationFormatManager->normalizeIdentifier($fileInfo['extension']);
                 }
 
                 $targets[$target][] = ['index' => $i, 'file' => $currentFileName];
@@ -142,7 +146,8 @@ class PublicationFormatUploader
     /**
      * @param array{errors: array<string>, successMessages: array<string>} $results
      *
-     * @return array<int, array<int, int>> Proof file IDs keyed by submission ID
+     * @return array<string, array<int, int>> HTML/XML proof file IDs keyed by
+     *   submission, chapter and language
      */
     private function processMainFiles(array &$results, array $blockedEntryIndexes): array
     {
@@ -178,7 +183,10 @@ class PublicationFormatUploader
                     continue;
                 }
 
-                [$submissionId, $localeToken] = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionData = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionId = $submissionData['submissionId'];
+                $chapterId = $submissionData['chapterId'];
+                $localeToken = $submissionData['explicitLocale'];
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
@@ -197,6 +205,7 @@ class PublicationFormatUploader
                         ])
                     );
                 }
+                $this->validateChapter($chapterId, $publication, $submissionId);
 
                 [$format, $formatCreated] = $this->publicationFormatManager->getOrCreateFormat(
                     $publication,
@@ -204,7 +213,7 @@ class PublicationFormatUploader
                     $submission->getData('locale')
                 );
 
-                $existingProof = $this->findExistingProof($submission, $format, $language);
+                $existingProof = $this->findExistingProof($submission, $format, $language, $chapterId);
                 $fileId = $this->fileProcessor->saveFileToRepo($submission, $fileInfo, $currentFileName);
                 [$proof, $proofCreated] = $this->createOrReviseProof(
                     $fileId,
@@ -212,6 +221,7 @@ class PublicationFormatUploader
                     $format,
                     $fileInfo,
                     $language,
+                    $chapterId,
                     $existingProof
                 );
 
@@ -233,7 +243,12 @@ class PublicationFormatUploader
                 );
 
                 if ($label === 'HTML' || $label === 'XML') {
-                    $mainProofs[$submission->getId()][$proof->getId()] = $proof->getId();
+                    $proofTarget = $this->getParentProofTarget(
+                        $submission->getId(),
+                        $chapterId,
+                        $language
+                    );
+                    $mainProofs[$proofTarget][$proof->getId()] = $proof->getId();
                 }
             } catch (Throwable $exception) {
                 $cleanupErrors = [];
@@ -270,10 +285,9 @@ class PublicationFormatUploader
         return $mainProofs;
     }
 
-    private function findExistingProof($submission, $format, string $language)
+    private function findExistingProof($submission, $format, string $language, ?int $chapterId)
     {
         $exactMatches = [];
-        $unspecifiedLanguage = [];
         $proofs = Repo::submissionFile()
             ->getCollector()
             ->filterBySubmissionIds([$submission->getId()])
@@ -285,15 +299,8 @@ class PublicationFormatUploader
             ->getMany();
 
         foreach ($proofs as $proof) {
-            if ($proof->getData('chapterId')) {
-                continue;
-            }
-
-            $proofLanguage = $proof->getData('language');
-            if (is_string($proofLanguage) && strcasecmp($proofLanguage, $language) === 0) {
+            if ($this->proofMatchesTarget($proof, $language, $chapterId)) {
                 $exactMatches[] = $proof;
-            } elseif (!$proofLanguage) {
-                $unspecifiedLanguage[] = $proof;
             }
         }
 
@@ -305,25 +312,7 @@ class PublicationFormatUploader
                 ])
             );
         }
-        if (count($exactMatches) === 1) {
-            return $exactMatches[0];
-        }
-
-        if ($language === $submission->getData('locale')) {
-            if (count($unspecifiedLanguage) > 1) {
-                throw new RuntimeException(
-                    __('plugins.importexport.publicationFormatsUploader.error.ambiguousProof', [
-                        'format' => $this->getFormatLabel($format),
-                        'locale' => $language,
-                    ])
-                );
-            }
-            if (count($unspecifiedLanguage) === 1) {
-                return $unspecifiedLanguage[0];
-            }
-        }
-
-        return null;
+        return count($exactMatches) === 1 ? $exactMatches[0] : null;
     }
 
     /**
@@ -335,14 +324,19 @@ class PublicationFormatUploader
         $format,
         array $fileInfo,
         string $language,
+        ?int $chapterId,
         $existingProof
     ): array {
         if ($existingProof) {
             Repo::submissionFile()->edit($existingProof, [
                 'fileId' => $fileId,
                 'language' => $language,
+                'chapterId' => $chapterId,
+                'viewable' => true,
             ]);
-            return [Repo::submissionFile()->get($existingProof->getId()), false];
+            $proof = Repo::submissionFile()->get($existingProof->getId());
+            $this->assertProofMatchesTarget($proof, $language, $chapterId);
+            return [$proof, false];
         }
 
         $submissionLocale = $submission->getData('locale');
@@ -353,10 +347,11 @@ class PublicationFormatUploader
         $submissionFile->setData('submissionId', $submission->getId());
         $submissionFile->setData('submissionLocale', $submissionLocale);
         $submissionFile->setData('language', $language);
+        $submissionFile->setData('chapterId', $chapterId);
         $submissionFile->setData('uploaderUserId', $this->getCurrentUserId());
         $submissionFile->setData('assocType', Application::ASSOC_TYPE_PUBLICATION_FORMAT);
         $submissionFile->setData('assocId', $format->getId());
-        $submissionFile->setViewable(false);
+        $submissionFile->setViewable(true);
         $submissionFile->setDirectSalesPrice(0);
         $submissionFile->setSalesType('openAccess');
 
@@ -370,7 +365,45 @@ class PublicationFormatUploader
         $submissionFile->setData('genreId', $genre->getId());
 
         $submissionFileId = Repo::submissionFile()->add($submissionFile);
-        return [Repo::submissionFile()->get($submissionFileId), true];
+        $proof = Repo::submissionFile()->get($submissionFileId);
+        try {
+            $this->assertProofMatchesTarget($proof, $language, $chapterId);
+        } catch (Throwable $exception) {
+            if ($proof) {
+                Repo::submissionFile()->delete($proof);
+            }
+            throw $exception;
+        }
+        return [$proof, true];
+    }
+
+    private function proofMatchesTarget($proof, string $language, ?int $chapterId): bool
+    {
+        if (!$proof) {
+            return false;
+        }
+
+        $proofChapterId = $proof->getData('chapterId');
+        $proofHasChapter = $proofChapterId !== null && $proofChapterId !== '';
+        if ($chapterId === null) {
+            if ($proofHasChapter) {
+                return false;
+            }
+        } elseif (!$proofHasChapter || (int) $proofChapterId !== $chapterId) {
+            return false;
+        }
+
+        $proofLanguage = $proof->getData('language');
+        return is_string($proofLanguage) && strcasecmp($proofLanguage, $language) === 0;
+    }
+
+    private function assertProofMatchesTarget($proof, string $language, ?int $chapterId): void
+    {
+        if (!$this->proofMatchesTarget($proof, $language, $chapterId)) {
+            throw new RuntimeException(
+                __('plugins.importexport.publicationFormatsUploader.error.proofTargetMismatch')
+            );
+        }
     }
 
     private function processDependentFiles(
@@ -388,6 +421,7 @@ class PublicationFormatUploader
 
             $currentFileName = $this->zipArchive->getNameIndex($i);
             $submissionId = null;
+            $proofTarget = null;
 
             try {
                 if (!is_string($currentFileName) || !$this->isValidFile($currentFileName)) {
@@ -408,7 +442,10 @@ class PublicationFormatUploader
                     continue;
                 }
 
-                [$submissionId, $localeToken] = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionData = $this->extractSubmissionData($fileInfo['fileName']);
+                $submissionId = $submissionData['submissionId'];
+                $chapterId = $submissionData['chapterId'];
+                $localeToken = $submissionData['explicitLocale'];
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
@@ -417,9 +454,19 @@ class PublicationFormatUploader
                         ])
                     );
                 }
-                $this->resolveLanguage($localeToken, $submission);
+                $language = $this->resolveLanguage($localeToken, $submission);
+                $publication = $submission->getLatestPublication();
+                if (!$publication) {
+                    throw new RuntimeException(
+                        __('plugins.importexport.publicationFormatsUploader.error.publicationNotFound', [
+                            'submissionId' => $submissionId,
+                        ])
+                    );
+                }
+                $this->validateChapter($chapterId, $publication, $submissionId);
 
-                $parentProofIds = $mainProofs[$submission->getId()] ?? [];
+                $proofTarget = $this->getParentProofTarget($submissionId, $chapterId, $language);
+                $parentProofIds = $mainProofs[$proofTarget] ?? [];
                 if (empty($parentProofIds)) {
                     $results['errors'][] = __(
                         'plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent',
@@ -428,7 +475,7 @@ class PublicationFormatUploader
                     continue;
                 }
 
-                if (!isset($replacementStates[$submissionId])) {
+                if (!isset($replacementStates[$proofTarget])) {
                     $oldDependentFiles = [];
                     $stagedFileIds = [];
                     foreach ($parentProofIds as $parentProofId) {
@@ -436,7 +483,8 @@ class PublicationFormatUploader
                             ->getDependentFiles($parentProofId, $submissionId);
                         $stagedFileIds[$parentProofId] = [];
                     }
-                    $replacementStates[$submissionId] = [
+                    $replacementStates[$proofTarget] = [
+                        'submissionId' => $submissionId,
                         'failed' => false,
                         'oldDependentFiles' => $oldDependentFiles,
                         'stagedFileIds' => $stagedFileIds,
@@ -444,7 +492,7 @@ class PublicationFormatUploader
                     ];
                 }
 
-                if ($replacementStates[$submissionId]['failed']) {
+                if ($replacementStates[$proofTarget]['failed']) {
                     continue;
                 }
 
@@ -458,7 +506,7 @@ class PublicationFormatUploader
                         $fileInfo,
                         $currentFileName
                     );
-                    $replacementStates[$submissionId]['stagedFileIds'][$parentProofId][] = $fileId;
+                    $replacementStates[$proofTarget]['stagedFileIds'][$parentProofId][] = $fileId;
                     $this->dependentFileManager->createDependentFile(
                         $fileId,
                         $submission,
@@ -468,14 +516,14 @@ class PublicationFormatUploader
                         $genreId
                     );
 
-                    $replacementStates[$submissionId]['successMessages'][] = __(
+                    $replacementStates[$proofTarget]['successMessages'][] = __(
                         'plugins.importexport.publicationFormatsUploader.result.dependentCreated',
                         ['file' => $fileInfo['fileBase'], 'submissionId' => $submissionId]
                     );
                 }
             } catch (Throwable $exception) {
-                if ($submissionId !== null && isset($replacementStates[$submissionId])) {
-                    $replacementStates[$submissionId]['failed'] = true;
+                if ($proofTarget !== null && isset($replacementStates[$proofTarget])) {
+                    $replacementStates[$proofTarget]['failed'] = true;
                 }
                 $results['errors'][] = __(
                     'plugins.importexport.publicationFormatsUploader.error.file',
@@ -484,7 +532,8 @@ class PublicationFormatUploader
             }
         }
 
-        foreach ($replacementStates as $submissionId => $state) {
+        foreach ($replacementStates as $state) {
+            $submissionId = $state['submissionId'];
             if ($state['failed']) {
                 foreach ($state['stagedFileIds'] as $parentProofId => $fileIds) {
                     foreach ($fileIds as $fileId) {
@@ -530,7 +579,9 @@ class PublicationFormatUploader
     }
 
     /**
-     * @return array{0: int, 1: string|null}
+     * Parse the filename suffix without constraining hyphens in the name.
+     *
+     * @return array{submissionId: int, chapterId: int|null, explicitLocale: string|null}
      */
     private function extractSubmissionData(string $fileName): array
     {
@@ -541,27 +592,69 @@ class PublicationFormatUploader
             );
         }
 
-        $lastPart = array_pop($parts);
-        $localeToken = null;
-        if (!preg_match('/^[1-9][0-9]*$/', $lastPart)) {
-            $localeToken = $lastPart;
-            if (!$parts) {
+        $lastPart = (string) array_pop($parts);
+        $explicitLocale = null;
+        if (preg_match('/^[1-9][0-9]*$/D', $lastPart)) {
+            $submissionIdToken = $lastPart;
+            if (count($parts) >= 2 && $this->isLocaleToken((string) end($parts))) {
+                $explicitLocale = (string) array_pop($parts);
+            }
+        } else {
+            if (!$this->isLocaleToken($lastPart) || !$parts) {
                 throw new RuntimeException(
-                    __('plugins.importexport.publicationFormatsUploader.error.invalidFileName')
+                    __('plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId', [
+                        'submissionId' => $lastPart,
+                    ])
                 );
             }
-            $lastPart = array_pop($parts);
+            $explicitLocale = $lastPart;
+            $submissionIdToken = (string) array_pop($parts);
         }
 
-        if (!preg_match('/^[1-9][0-9]*$/', $lastPart)) {
+        if (
+            !preg_match('/^[1-9][0-9]*$/D', $submissionIdToken)
+            || (string) (int) $submissionIdToken !== $submissionIdToken
+        ) {
             throw new RuntimeException(
                 __('plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId', [
-                    'submissionId' => $lastPart,
+                    'submissionId' => $submissionIdToken,
                 ])
             );
         }
 
-        return [(int) $lastPart, $localeToken];
+        $chapterId = null;
+        if ($parts && preg_match('/^cap([0-9]+)$/D', (string) end($parts), $matches)) {
+            array_pop($parts);
+            if (
+                !preg_match('/^[1-9][0-9]*$/D', $matches[1])
+                || (string) (int) $matches[1] !== $matches[1]
+            ) {
+                throw new RuntimeException(
+                    __('plugins.importexport.publicationFormatsUploader.error.invalidChapterId', [
+                        'chapterId' => $matches[1],
+                    ])
+                );
+            }
+            $chapterId = (int) $matches[1];
+        }
+
+        if (!$parts || implode(self::SEPARATOR, $parts) === '') {
+            throw new RuntimeException(
+                __('plugins.importexport.publicationFormatsUploader.error.invalidFileName')
+            );
+        }
+
+        return [
+            'submissionId' => (int) $submissionIdToken,
+            'chapterId' => $chapterId,
+            'explicitLocale' => $explicitLocale,
+        ];
+    }
+
+    private function isLocaleToken(string $token): bool
+    {
+        return strcasecmp($token, 'cap') !== 0
+            && preg_match('/^[a-z]{2,3}(?:_[a-z0-9]{2,8})*$/iD', $token) === 1;
     }
 
     private function resolveLanguage(?string $localeToken, $submission = null): string
@@ -580,6 +673,38 @@ class PublicationFormatUploader
         }
 
         return $language;
+    }
+
+    private function validateChapter(?int $chapterId, $publication, int $submissionId): void
+    {
+        if ($chapterId === null) {
+            return;
+        }
+
+        $chapterDao = DAORegistry::getDAO('ChapterDAO');
+        $chapter = $chapterDao->getChapter($chapterId);
+        if (!$chapter) {
+            throw new RuntimeException(
+                __('plugins.importexport.publicationFormatsUploader.error.chapterNotFound', [
+                    'chapterId' => $chapterId,
+                ])
+            );
+        }
+        if (!$chapterDao->getChapter($chapterId, (int) $publication->getId())) {
+            throw new RuntimeException(
+                __('plugins.importexport.publicationFormatsUploader.error.chapterNotInPublication', [
+                    'chapterId' => $chapterId,
+                    'submissionId' => $submissionId,
+                ])
+            );
+        }
+    }
+
+    private function getParentProofTarget(int $submissionId, ?int $chapterId, string $language): string
+    {
+        return $submissionId . ':'
+            . ($chapterId === null ? 'book' : 'chapter-' . $chapterId) . ':'
+            . strtolower($language);
     }
 
     private function getContext()

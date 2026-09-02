@@ -20,7 +20,7 @@ msgid "plugins.importexport.publicationFormatsUploader.settings"
 msgstr "Upload publication formats"
 
 msgid "plugins.importexport.publicationFormatsUploader.instructions"
-msgstr "Select a ZIP archive containing publication format proof files."
+msgstr "Select a ZIP containing proof files named <name>-[cap<chapterId>-][<locale>-]<submissionId>.<extension>."
 
 msgid "plugins.importexport.publicationFormatsUploader.upload"
 msgstr "Upload"
@@ -55,6 +55,9 @@ msgstr "The file name does not contain a valid submission ID."
 msgid "plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId"
 msgstr "'{$submissionId}' is not a valid submission ID."
 
+msgid "plugins.importexport.publicationFormatsUploader.error.invalidChapterId"
+msgstr "'{$chapterId}' is not a valid chapter ID."
+
 msgid "plugins.importexport.publicationFormatsUploader.error.invalidLocale"
 msgstr "'{$locale}' is not a supported file-name locale."
 
@@ -63,6 +66,12 @@ msgstr "No submission was found for ID {$submissionId} in this press."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.publicationNotFound"
 msgstr "Submission {$submissionId} has no publication."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotFound"
+msgstr "No chapter was found for ID {$chapterId}."
+
+msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotInPublication"
+msgstr "Chapter {$chapterId} does not belong to the latest publication of submission {$submissionId}."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousProof"
 msgstr "Publication format '{$format}' has more than one proof matching language {$locale}. No proof was changed."
@@ -74,7 +83,7 @@ msgid "plugins.importexport.publicationFormatsUploader.error.dependentGenreMissi
 msgstr "The {$genre} file genre is not configured for this press."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent"
-msgstr "Dependent file {$file} has no HTML or XML proof from the same submission in this upload."
+msgstr "Dependent file {$file} has no HTML or XML proof from the same submission, chapter, and language in this upload."
 
 msgid "plugins.importexport.publicationFormatsUploader.error.dependentReplacement"
 msgstr "Could not complete dependent-file replacement for submission {$submissionId}: {$message}"
@@ -105,3 +114,6 @@ msgstr "No files were changed."
 
 msgid "plugins.importexport.publicationFormatsUploader.result.return"
 msgstr "Return"
+
+msgid "plugins.importexport.publicationFormatsUploader.error.proofTargetMismatch"
+msgstr "OMP did not persist the requested proof language and chapter assignment."
