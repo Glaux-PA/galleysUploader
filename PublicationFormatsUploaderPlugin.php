@@ -12,14 +12,35 @@
 
 namespace APP\plugins\generic\publicationFormatsUploader;
 
+use APP\core\Application;
 use APP\template\TemplateManager;
 use PKP\core\JSONMessage;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\plugins\GenericPlugin;
+use PKP\plugins\Hook;
+
+require_once __DIR__ . '/ChapterFileFilter.php';
 
 class PublicationFormatsUploaderPlugin extends GenericPlugin
 {
+    private ?\ChapterFileFilter $chapterFileFilter = null;
+
+    /**
+     * @copydoc Plugin::register()
+     */
+    public function register($category, $path, $mainContextId = null): bool
+    {
+        $success = parent::register($category, $path, $mainContextId);
+
+        if ($success && $this->getEnabled($mainContextId)) {
+            Hook::add('chapterform::display', [$this, 'filterChapterFileOptions']);
+            Hook::add('chapterform::execute', [$this, 'preserveHiddenDependentAssignments']);
+        }
+
+        return $success;
+    }
+
     /**
      * @copydoc Plugin::getDisplayName()
      */
@@ -34,6 +55,30 @@ class PublicationFormatsUploaderPlugin extends GenericPlugin
     public function getDescription(): string
     {
         return __('plugins.generic.publicationFormatsUploader.description');
+    }
+
+    /**
+     * Delegate chapter-form display filtering while the plugin remains enabled.
+     */
+    public function filterChapterFileOptions(string $hookName, array $args): bool
+    {
+        if (!$this->isEnabledForCurrentContext()) {
+            return Hook::CONTINUE;
+        }
+
+        return $this->getChapterFileFilter()->filterChapterFileOptions($hookName, $args);
+    }
+
+    /**
+     * Delegate preservation of hidden legacy chapter-file associations.
+     */
+    public function preserveHiddenDependentAssignments(string $hookName, array $args): bool
+    {
+        if (!$this->isEnabledForCurrentContext()) {
+            return Hook::CONTINUE;
+        }
+
+        return $this->getChapterFileFilter()->preserveHiddenDependentAssignments($hookName, $args);
     }
 
     /**
@@ -110,5 +155,22 @@ class PublicationFormatsUploaderPlugin extends GenericPlugin
         }
 
         return parent::manage($args, $request);
+    }
+
+    private function getChapterFileFilter(): \ChapterFileFilter
+    {
+        if ($this->chapterFileFilter === null) {
+            $this->chapterFileFilter = new \ChapterFileFilter();
+        }
+
+        return $this->chapterFileFilter;
+    }
+
+    private function isEnabledForCurrentContext(): bool
+    {
+        $request = Application::get()->getRequest();
+        $context = $request?->getContext();
+
+        return $context !== null && $this->getEnabled($context->getId());
     }
 }

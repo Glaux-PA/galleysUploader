@@ -1,8 +1,9 @@
 # Publication Formats Uploader for OMP 3.5
 
 This generic plugin bulk uploads proof files into OMP 3.5 publication formats.
-It is an OMP-specific implementation and targets OMP only. The chapter-file
-filter included in this repository is intentionally inactive at this stage.
+It is an OMP-specific implementation and targets OMP only. The same plugin also
+hides dependent submission files from the **Edit Chapter > Files** selector
+without deleting them or changing their chapter or parent-file associations.
 
 ## Installation
 
@@ -14,7 +15,8 @@ it under **Website Settings > Plugins > Installed Plugins**.
 When enabled, open **Publication Formats Uploader > Upload publication formats**
 in the Installed Plugins list. The uploader opens in the standard plugin modal.
 The action is hidden, and its component requests are rejected, while the plugin
-is disabled.
+is disabled. Disabling the plugin also stops its chapter-form filtering, so OMP
+returns to its stock chapter file behavior.
 
 ## Migrating a Docker lab from the import/export plugin
 
@@ -35,8 +37,29 @@ review and before testing the single-plugin layout:
 3. Clear OMP's application/template caches and restart the affected container.
 4. Visit **Website Settings > Plugins > Installed Plugins**, allow OMP to record
    the generic product if needed, and enable **Publication Formats Uploader**.
-5. Leave the separately installed `ompChapterFileFilter` plugin unchanged for
-   this stage; this plugin does not register chapter-form hooks yet.
+5. Confirm that this plugin provides both the uploader action and the filtered
+   **Edit Chapter > Files** selector.
+
+## Removing the separate chapter-file filter from a lab
+
+After installing this single-plugin version and confirming that it is enabled
+for the press:
+
+1. Disable **OMP Chapter File Filter** (`ompChapterFileFilter`) under **Website
+   Settings > Plugins > Installed Plugins**.
+2. Remove its separate bind mount or its
+   `plugins/generic/ompChapterFileFilter` directory from the OMP container. Do
+   not remove or alter this repository's `ChapterFileFilter.php`.
+3. Clear OMP's application and template caches, then restart the affected
+   container.
+4. Verify that only **Publication Formats Uploader** is enabled, that its upload
+   action still opens, and that dependent files remain absent from **Edit
+   Chapter > Files**.
+
+The old `ompChapterFileFilter` database version row may remain as installation
+history; no database rewrite is required. The integrated filtering targets OMP
+3.5's `ChapterForm` hooks and submission-file collector API and has been designed
+for the OMP 3.5 line.
 
 ## ZIP naming contract
 

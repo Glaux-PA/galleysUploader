@@ -108,5 +108,24 @@ namespace {
         'Unassigned dependents and dependents assigned to other chapters must remain unchanged.'
     );
 
+    $filterSource = file_get_contents(dirname(__DIR__) . '/ChapterFileFilter.php');
+    foreach (
+        [
+            'APP\\controllers\\grid\\users\\chapter\\form\\ChapterForm',
+            'SubmissionFile::SUBMISSION_FILE_DEPENDENT',
+            '->includeDependentFiles(true)',
+            '->filterByFileStages([SubmissionFile::SUBMISSION_FILE_DEPENDENT])',
+        ] as $requiredPart
+    ) {
+        if (!str_contains($filterSource, $requiredPart)) {
+            throw new RuntimeException('Missing OMP chapter-filter contract: ' . $requiredPart);
+        }
+    }
+    foreach (['setData(\'chapterId\'', 'setChapterId('] as $forbiddenMutation) {
+        if (str_contains($filterSource, $forbiddenMutation)) {
+            throw new RuntimeException('The filter must not mutate chapterId: ' . $forbiddenMutation);
+        }
+    }
+
     echo 'ChapterFileFilter focused tests passed.' . PHP_EOL;
 }
