@@ -24,7 +24,7 @@ class PublicationFormatManager
 
         if (count($matches) > 1) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.ambiguousFormat', [
+                __('plugins.generic.publicationFormatsUploader.error.ambiguousFormat', [
                     'extension' => $label,
                 ])
             );
@@ -58,7 +58,7 @@ class PublicationFormatManager
         $identifier = strtolower(trim($extension));
         if (!preg_match('/^[a-z0-9]+([.\-_][a-z0-9]+)*$/', $identifier)) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.invalidFormatIdentifier', [
+                __('plugins.generic.publicationFormatsUploader.error.invalidFormatIdentifier', [
                     'extension' => $extension,
                 ])
             );
@@ -101,14 +101,14 @@ class PublicationFormatManager
 
                 if ($isPhysical) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.physicalFormat', [
+                        __('plugins.generic.publicationFormatsUploader.error.physicalFormat', [
                             'extension' => $label,
                         ])
                     );
                 }
                 if ($isRemote) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.remoteFormat', [
+                        __('plugins.generic.publicationFormatsUploader.error.remoteFormat', [
                             'extension' => $label,
                         ])
                     );

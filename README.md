@@ -1,13 +1,42 @@
 # Publication Formats Uploader for OMP 3.5
 
-This import/export plugin bulk uploads proof files into OMP 3.5 publication formats.
-It is an OMP-specific implementation and targets OMP only.
+This generic plugin bulk uploads proof files into OMP 3.5 publication formats.
+It is an OMP-specific implementation and targets OMP only. The chapter-file
+filter included in this repository is intentionally inactive at this stage.
 
 ## Installation
 
 Install the plugin through **Dashboard > Website Settings > Plugins > Upload A New
-Plugin**, or extract the plugin directory under `plugins/importexport` in an OMP
-3.5 installation. Enable it from the plugin gallery after installation.
+Plugin**, or extract it to the exact directory
+`plugins/generic/publicationFormatsUploader` in an OMP 3.5 installation. Enable
+it under **Website Settings > Plugins > Installed Plugins**.
+
+When enabled, open **Publication Formats Uploader > Upload publication formats**
+in the Installed Plugins list. The uploader opens in the standard plugin modal.
+The action is hidden, and its component requests are rejected, while the plugin
+is disabled.
+
+## Migrating a Docker lab from the import/export plugin
+
+This generic plugin is a separate category installation. Do not edit the old
+`plugins.importexport` row in the `versions` table to turn it into a generic
+row. OMP must discover/install `publicationFormatsUploader` under
+`plugins.generic`, creating its own version record; the old import/export row
+may remain as installation history.
+
+The lab configuration is intentionally not changed in this repository. After
+review and before testing the single-plugin layout:
+
+1. Change the uploader bind mount or copied directory so this checkout appears
+   at `plugins/generic/publicationFormatsUploader` in the OMP container.
+2. Remove the old `plugins/importexport/publicationFormatsUploader` mount or
+   directory from the container so the former **Tools > Import/Export** entry is
+   not loaded. Do not rewrite its existing database version row.
+3. Clear OMP's application/template caches and restart the affected container.
+4. Visit **Website Settings > Plugins > Installed Plugins**, allow OMP to record
+   the generic product if needed, and enable **Publication Formats Uploader**.
+5. Leave the separately installed `ompChapterFileFilter` plugin unchanged for
+   this stage; this plugin does not register chapter-form hooks yet.
 
 ## ZIP naming contract
 

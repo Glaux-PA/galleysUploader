@@ -44,8 +44,8 @@ class PublicationFormatUploader
         $zipOpened = $this->zipArchive->open($this->temporaryFilePath);
         if ($zipOpened !== true) {
             $results['errors'][] = $zipOpened === ZipArchive::ER_NOZIP
-                ? __('plugins.importexport.publicationFormatsUploader.error.notZip')
-                : __('plugins.importexport.publicationFormatsUploader.error.cannotOpen');
+                ? __('plugins.generic.publicationFormatsUploader.error.notZip')
+                : __('plugins.generic.publicationFormatsUploader.error.cannotOpen');
             return $results;
         }
 
@@ -135,7 +135,7 @@ class PublicationFormatUploader
                 $blockedEntryIndexes[$entry['index']] = true;
             }
             $results['errors'][] = __(
-                'plugins.importexport.publicationFormatsUploader.error.duplicateTarget',
+                'plugins.generic.publicationFormatsUploader.error.duplicateTarget',
                 ['files' => implode(', ', array_column($entries, 'file'))]
             );
         }
@@ -190,7 +190,7 @@ class PublicationFormatUploader
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.submissionNotFound', [
+                        __('plugins.generic.publicationFormatsUploader.error.submissionNotFound', [
                             'submissionId' => $submissionId,
                         ])
                     );
@@ -200,7 +200,7 @@ class PublicationFormatUploader
                 $publication = $submission->getLatestPublication();
                 if (!$publication) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.publicationNotFound', [
+                        __('plugins.generic.publicationFormatsUploader.error.publicationNotFound', [
                             'submissionId' => $submissionId,
                         ])
                     );
@@ -227,14 +227,14 @@ class PublicationFormatUploader
 
                 if ($formatCreated) {
                     $results['successMessages'][] = __(
-                        'plugins.importexport.publicationFormatsUploader.result.formatCreated',
+                        'plugins.generic.publicationFormatsUploader.result.formatCreated',
                         ['format' => $label, 'submissionId' => $submissionId]
                     );
                 }
                 $results['successMessages'][] = __(
                     $proofCreated
-                        ? 'plugins.importexport.publicationFormatsUploader.result.proofCreated'
-                        : 'plugins.importexport.publicationFormatsUploader.result.proofRevised',
+                        ? 'plugins.generic.publicationFormatsUploader.result.proofCreated'
+                        : 'plugins.generic.publicationFormatsUploader.result.proofRevised',
                     [
                         'format' => $label,
                         'submissionId' => $submissionId,
@@ -276,7 +276,7 @@ class PublicationFormatUploader
                     $message .= ' Cleanup failed: ' . implode('; ', $cleanupErrors);
                 }
                 $results['errors'][] = __(
-                    'plugins.importexport.publicationFormatsUploader.error.file',
+                    'plugins.generic.publicationFormatsUploader.error.file',
                     ['file' => (string) $currentFileName, 'message' => $message]
                 );
             }
@@ -306,7 +306,7 @@ class PublicationFormatUploader
 
         if (count($exactMatches) > 1) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.ambiguousProof', [
+                __('plugins.generic.publicationFormatsUploader.error.ambiguousProof', [
                     'format' => $this->getFormatLabel($format),
                     'locale' => $language,
                 ])
@@ -359,7 +359,7 @@ class PublicationFormatUploader
         $genre = $genreDao->getByKey('MANUSCRIPT', $this->getContext()->getId());
         if (!$genre) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.manuscriptGenreMissing')
+                __('plugins.generic.publicationFormatsUploader.error.manuscriptGenreMissing')
             );
         }
         $submissionFile->setData('genreId', $genre->getId());
@@ -401,7 +401,7 @@ class PublicationFormatUploader
     {
         if (!$this->proofMatchesTarget($proof, $language, $chapterId)) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.proofTargetMismatch')
+                __('plugins.generic.publicationFormatsUploader.error.proofTargetMismatch')
             );
         }
     }
@@ -449,7 +449,7 @@ class PublicationFormatUploader
                 $submission = Repo::submission()->get($submissionId, $this->getContext()->getId());
                 if (!$submission) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.submissionNotFound', [
+                        __('plugins.generic.publicationFormatsUploader.error.submissionNotFound', [
                             'submissionId' => $submissionId,
                         ])
                     );
@@ -458,7 +458,7 @@ class PublicationFormatUploader
                 $publication = $submission->getLatestPublication();
                 if (!$publication) {
                     throw new RuntimeException(
-                        __('plugins.importexport.publicationFormatsUploader.error.publicationNotFound', [
+                        __('plugins.generic.publicationFormatsUploader.error.publicationNotFound', [
                             'submissionId' => $submissionId,
                         ])
                     );
@@ -469,7 +469,7 @@ class PublicationFormatUploader
                 $parentProofIds = $mainProofs[$proofTarget] ?? [];
                 if (empty($parentProofIds)) {
                     $results['errors'][] = __(
-                        'plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent',
+                        'plugins.generic.publicationFormatsUploader.error.dependentWithoutParent',
                         ['file' => $currentFileName, 'submissionId' => $submissionId]
                     );
                     continue;
@@ -517,7 +517,7 @@ class PublicationFormatUploader
                     );
 
                     $replacementStates[$proofTarget]['successMessages'][] = __(
-                        'plugins.importexport.publicationFormatsUploader.result.dependentCreated',
+                        'plugins.generic.publicationFormatsUploader.result.dependentCreated',
                         ['file' => $fileInfo['fileBase'], 'submissionId' => $submissionId]
                     );
                 }
@@ -526,7 +526,7 @@ class PublicationFormatUploader
                     $replacementStates[$proofTarget]['failed'] = true;
                 }
                 $results['errors'][] = __(
-                    'plugins.importexport.publicationFormatsUploader.error.file',
+                    'plugins.generic.publicationFormatsUploader.error.file',
                     ['file' => (string) $currentFileName, 'message' => $exception->getMessage()]
                 );
             }
@@ -554,7 +554,7 @@ class PublicationFormatUploader
                         }
                         if ($cleanupErrors) {
                             $results['errors'][] = __(
-                                'plugins.importexport.publicationFormatsUploader.error.dependentReplacement',
+                                'plugins.generic.publicationFormatsUploader.error.dependentReplacement',
                                 ['submissionId' => $submissionId, 'message' => implode('; ', $cleanupErrors)]
                             );
                         }
@@ -569,7 +569,7 @@ class PublicationFormatUploader
                 }
             } catch (Throwable $exception) {
                 $results['errors'][] = __(
-                    'plugins.importexport.publicationFormatsUploader.error.dependentReplacement',
+                    'plugins.generic.publicationFormatsUploader.error.dependentReplacement',
                     ['submissionId' => $submissionId, 'message' => $exception->getMessage()]
                 );
             }
@@ -588,7 +588,7 @@ class PublicationFormatUploader
         $parts = explode(self::SEPARATOR, $fileName);
         if (count($parts) < 2) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.invalidFileName')
+                __('plugins.generic.publicationFormatsUploader.error.invalidFileName')
             );
         }
 
@@ -602,7 +602,7 @@ class PublicationFormatUploader
         } else {
             if (!$this->isLocaleToken($lastPart) || !$parts) {
                 throw new RuntimeException(
-                    __('plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId', [
+                    __('plugins.generic.publicationFormatsUploader.error.invalidSubmissionId', [
                         'submissionId' => $lastPart,
                     ])
                 );
@@ -616,7 +616,7 @@ class PublicationFormatUploader
             || (string) (int) $submissionIdToken !== $submissionIdToken
         ) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId', [
+                __('plugins.generic.publicationFormatsUploader.error.invalidSubmissionId', [
                     'submissionId' => $submissionIdToken,
                 ])
             );
@@ -630,7 +630,7 @@ class PublicationFormatUploader
                 || (string) (int) $matches[1] !== $matches[1]
             ) {
                 throw new RuntimeException(
-                    __('plugins.importexport.publicationFormatsUploader.error.invalidChapterId', [
+                    __('plugins.generic.publicationFormatsUploader.error.invalidChapterId', [
                         'chapterId' => $matches[1],
                     ])
                 );
@@ -640,7 +640,7 @@ class PublicationFormatUploader
 
         if (!$parts || implode(self::SEPARATOR, $parts) === '') {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.invalidFileName')
+                __('plugins.generic.publicationFormatsUploader.error.invalidFileName')
             );
         }
 
@@ -666,7 +666,7 @@ class PublicationFormatUploader
 
         if ($language === '' || !in_array($language, $supportedLocales, true)) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.invalidLocale', [
+                __('plugins.generic.publicationFormatsUploader.error.invalidLocale', [
                     'locale' => $language,
                 ])
             );
@@ -685,14 +685,14 @@ class PublicationFormatUploader
         $chapter = $chapterDao->getChapter($chapterId);
         if (!$chapter) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.chapterNotFound', [
+                __('plugins.generic.publicationFormatsUploader.error.chapterNotFound', [
                     'chapterId' => $chapterId,
                 ])
             );
         }
         if (!$chapterDao->getChapter($chapterId, (int) $publication->getId())) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.chapterNotInPublication', [
+                __('plugins.generic.publicationFormatsUploader.error.chapterNotInPublication', [
                     'chapterId' => $chapterId,
                     'submissionId' => $submissionId,
                 ])

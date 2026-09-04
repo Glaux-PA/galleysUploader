@@ -39,7 +39,7 @@ class DependentFileManager
         $genre = DAORegistry::getDAO('GenreDAO')->getByKey($genreKey, $contextId);
         if (!$genre) {
             throw new RuntimeException(
-                __('plugins.importexport.publicationFormatsUploader.error.dependentGenreMissing', [
+                __('plugins.generic.publicationFormatsUploader.error.dependentGenreMissing', [
                     'genre' => $genreKey,
                 ])
             );

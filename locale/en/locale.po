@@ -10,110 +10,110 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "plugins.importexport.publicationFormatsUploader.displayName"
+msgid "plugins.generic.publicationFormatsUploader.displayName"
 msgstr "Publication Formats Uploader"
 
-msgid "plugins.importexport.publicationFormatsUploader.description"
+msgid "plugins.generic.publicationFormatsUploader.description"
 msgstr "Bulk upload publication format proof files for OMP."
 
-msgid "plugins.importexport.publicationFormatsUploader.settings"
+msgid "plugins.generic.publicationFormatsUploader.settings"
 msgstr "Upload publication formats"
 
-msgid "plugins.importexport.publicationFormatsUploader.instructions"
+msgid "plugins.generic.publicationFormatsUploader.instructions"
 msgstr "Select a ZIP containing proof files named <name>-[cap<chapterId>-][<locale>-]<submissionId>.<extension>."
 
-msgid "plugins.importexport.publicationFormatsUploader.upload"
+msgid "plugins.generic.publicationFormatsUploader.upload"
 msgstr "Upload"
 
-msgid "plugins.importexport.publicationFormatsUploader.error.notZip"
+msgid "plugins.generic.publicationFormatsUploader.error.notZip"
 msgstr "The selected file is not a ZIP archive."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.cannotOpen"
+msgid "plugins.generic.publicationFormatsUploader.error.cannotOpen"
 msgstr "The ZIP archive could not be opened."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.selectFile"
+msgid "plugins.generic.publicationFormatsUploader.error.selectFile"
 msgstr "Select a file to upload."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousFormat"
+msgid "plugins.generic.publicationFormatsUploader.error.pluginDisabled"
+msgstr "Enable the Publication Formats Uploader plugin before using this action."
+
+msgid "plugins.generic.publicationFormatsUploader.error.ambiguousFormat"
 msgstr "More than one publication format is named '{$extension}'. No format was changed."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.invalidFormatIdentifier"
+msgid "plugins.generic.publicationFormatsUploader.error.invalidFormatIdentifier"
 msgstr "'{$extension}' is not a valid publication format identifier."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.physicalFormat"
+msgid "plugins.generic.publicationFormatsUploader.error.physicalFormat"
 msgstr "The publication format '{$extension}' is physical and cannot receive a proof file."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.remoteFormat"
+msgid "plugins.generic.publicationFormatsUploader.error.remoteFormat"
 msgstr "The publication format '{$extension}' uses a remote URL and cannot receive a proof file."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.duplicateTarget"
+msgid "plugins.generic.publicationFormatsUploader.error.duplicateTarget"
 msgstr "The archive contains more than one file for the same target: {$files}. None of them was processed."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.invalidFileName"
+msgid "plugins.generic.publicationFormatsUploader.error.invalidFileName"
 msgstr "The file name does not contain a valid submission ID."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.invalidSubmissionId"
+msgid "plugins.generic.publicationFormatsUploader.error.invalidSubmissionId"
 msgstr "'{$submissionId}' is not a valid submission ID."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.invalidChapterId"
+msgid "plugins.generic.publicationFormatsUploader.error.invalidChapterId"
 msgstr "'{$chapterId}' is not a valid chapter ID."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.invalidLocale"
+msgid "plugins.generic.publicationFormatsUploader.error.invalidLocale"
 msgstr "'{$locale}' is not a supported file-name locale."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.submissionNotFound"
+msgid "plugins.generic.publicationFormatsUploader.error.submissionNotFound"
 msgstr "No submission was found for ID {$submissionId} in this press."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.publicationNotFound"
+msgid "plugins.generic.publicationFormatsUploader.error.publicationNotFound"
 msgstr "Submission {$submissionId} has no publication."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotFound"
+msgid "plugins.generic.publicationFormatsUploader.error.chapterNotFound"
 msgstr "No chapter was found for ID {$chapterId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.chapterNotInPublication"
+msgid "plugins.generic.publicationFormatsUploader.error.chapterNotInPublication"
 msgstr "Chapter {$chapterId} does not belong to the latest publication of submission {$submissionId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.ambiguousProof"
+msgid "plugins.generic.publicationFormatsUploader.error.ambiguousProof"
 msgstr "Publication format '{$format}' has more than one proof matching language {$locale}. No proof was changed."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.manuscriptGenreMissing"
+msgid "plugins.generic.publicationFormatsUploader.error.manuscriptGenreMissing"
 msgstr "The MANUSCRIPT file genre is not configured for this press."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.dependentGenreMissing"
+msgid "plugins.generic.publicationFormatsUploader.error.dependentGenreMissing"
 msgstr "The {$genre} file genre is not configured for this press."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.dependentWithoutParent"
+msgid "plugins.generic.publicationFormatsUploader.error.dependentWithoutParent"
 msgstr "Dependent file {$file} has no HTML or XML proof from the same submission, chapter, and language in this upload."
 
-msgid "plugins.importexport.publicationFormatsUploader.error.dependentReplacement"
+msgid "plugins.generic.publicationFormatsUploader.error.dependentReplacement"
 msgstr "Could not complete dependent-file replacement for submission {$submissionId}: {$message}"
 
-msgid "plugins.importexport.publicationFormatsUploader.error.file"
+msgid "plugins.generic.publicationFormatsUploader.error.file"
 msgstr "Could not process {$file}: {$message}"
 
-msgid "plugins.importexport.publicationFormatsUploader.result.formatCreated"
+msgid "plugins.generic.publicationFormatsUploader.result.formatCreated"
 msgstr "Created publication format {$format} for submission {$submissionId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.result.proofCreated"
+msgid "plugins.generic.publicationFormatsUploader.result.proofCreated"
 msgstr "Created {$locale} {$format} proof for submission {$submissionId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.result.proofRevised"
+msgid "plugins.generic.publicationFormatsUploader.result.proofRevised"
 msgstr "Added a new revision to the {$locale} {$format} proof for submission {$submissionId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.result.dependentCreated"
+msgid "plugins.generic.publicationFormatsUploader.result.dependentCreated"
 msgstr "Created dependent file {$file} for submission {$submissionId}."
 
-msgid "plugins.importexport.publicationFormatsUploader.result.errors"
+msgid "plugins.generic.publicationFormatsUploader.result.errors"
 msgstr "Errors"
 
-msgid "plugins.importexport.publicationFormatsUploader.result.summary"
+msgid "plugins.generic.publicationFormatsUploader.result.summary"
 msgstr "Upload summary"
 
-msgid "plugins.importexport.publicationFormatsUploader.result.noChanges"
+msgid "plugins.generic.publicationFormatsUploader.result.noChanges"
 msgstr "No files were changed."
 
-msgid "plugins.importexport.publicationFormatsUploader.result.return"
-msgstr "Return"
-
-msgid "plugins.importexport.publicationFormatsUploader.error.proofTargetMismatch"
+msgid "plugins.generic.publicationFormatsUploader.error.proofTargetMismatch"
 msgstr "OMP did not persist the requested proof language and chapter assignment."

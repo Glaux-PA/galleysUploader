@@ -10,11 +10,16 @@
  * @brief Handle publication format ZIP uploads.
  */
 
+namespace APP\plugins\generic\publicationFormatsUploader;
+
 use APP\core\Application;
+use Exception;
 use PKP\core\JSONMessage;
 use PKP\db\DAORegistry;
 use PKP\file\TemporaryFileManager;
 use PKP\form\Form;
+use PublicationFormatUploader;
+use ZipArchive;
 
 require_once __DIR__ . '/PublicationFormatUploader.php';
 
@@ -77,7 +82,7 @@ class PublicationFormatsUploadForm extends Form
         if (!$temporaryFile) {
             return [
                 'errors' => [
-                    __('plugins.importexport.publicationFormatsUploader.error.selectFile'),
+                    __('plugins.generic.publicationFormatsUploader.error.selectFile'),
                 ],
                 'successMessages' => [],
             ];

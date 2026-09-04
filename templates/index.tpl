@@ -4,56 +4,39 @@
  * Copyright (c) 2022+ publicacionesacademicas.es
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
- * File upload form for the Publication Formats Uploader plugin.
+ * Modal file upload form for the Publication Formats Uploader plugin.
  *}
 
-{extends file="layouts/backend.tpl"}
+<script>
+	$(function() {ldelim}
+		$('#publicationFormatsUploadForm').pkpHandler(
+			'$.pkp.controllers.form.FileUploadFormHandler',
+			{ldelim}
+				$uploader: $('#plupload'),
+				uploaderOptions: {ldelim}
+					uploadUrl: {url|json_encode router=PKP\core\PKPApplication::ROUTE_COMPONENT op="manage" category=$pluginCategory plugin=$pluginName verb="uploadTemporaryFile" escape=false},
+					baseUrl: {$baseUrl|json_encode}
+				{rdelim}
+			{rdelim}
+		);
+	{rdelim});
+</script>
 
-{block name="page"}
-	<h1 class="app__pageHeading">
-		{translate key="plugins.importexport.publicationFormatsUploader.displayName"}
-	</h1>
+<form
+	class="pkp_form"
+	id="publicationFormatsUploadForm"
+	method="post"
+	action="{url router=PKP\core\PKPApplication::ROUTE_COMPONENT op="manage" category=$pluginCategory plugin=$pluginName verb="uploadFile"}"
+>
+	{csrf}
+	{include file="controllers/notification/inPlaceNotification.tpl" notificationId="publicationFormatsUploadNotification"}
 
-	<script type="text/javascript">
-		$(function() {ldelim}
-		$('#publicationFormatsUploaderTabs').pkpHandler('$.pkp.controllers.TabHandler');
-		{rdelim});
-	</script>
+	{fbvFormArea id="publicationFormatsUpload"}
+		{fbvFormSection title="plugins.generic.publicationFormatsUploader.instructions" required=true}
+			{fbvElement type="hidden" id="temporaryFileId" value=""}
+			{include file="controllers/fileUploadContainer.tpl" id="plupload"}
+		{/fbvFormSection}
+	{/fbvFormArea}
 
-	<div id="publicationFormatsUploaderTabs">
-		<ul>
-			<li><a href="#import-tab">{translate key="plugins.importexport.publicationFormatsUploader.settings"}</a></li>
-		</ul>
-		<div id="import-tab">
-			<script type="text/javascript">
-				$(function() {ldelim}
-				// Attach the form handler.
-				$('#publicationFormatsUploadForm').pkpHandler('$.pkp.controllers.form.FileUploadFormHandler',
-					{ldelim}
-					$uploader: $('#plupload'),
-					uploaderOptions: {ldelim}
-						uploadUrl: {plugin_url|json_encode path="publicationFormatsUploadTempFile" escape=false},
-						baseUrl: {$baseUrl|json_encode}
-					{rdelim}
-					{rdelim}
-				);
-				{rdelim});
-			</script>
-			<form id="publicationFormatsUploadForm" class="pkp_form" action="{plugin_url path="publicationFormatsUploadFile"}" method="post">
-				{csrf}
-				{fbvFormArea id="importForm"}
-				{* Container for uploaded file *}
-				<input type="hidden" name="temporaryFileId" id="temporaryFileId" value="" />
-
-				{fbvFormArea id="file"}
-				{fbvFormSection title="plugins.importexport.publicationFormatsUploader.instructions"}
-				{include file="controllers/fileUploadContainer.tpl" id="plupload"}
-				{/fbvFormSection}
-				{/fbvFormArea}
-
-				{fbvFormButtons submitText="plugins.importexport.publicationFormatsUploader.upload" hideCancel="false"}
-				{/fbvFormArea}
-			</form>
-		</div>
-	</div>
-{/block}
+	{fbvFormButtons submitText="plugins.generic.publicationFormatsUploader.upload"}
+</form>
