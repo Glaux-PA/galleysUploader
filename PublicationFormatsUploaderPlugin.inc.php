@@ -12,11 +12,9 @@
 
 use APP\template\TemplateManager;
 use PKP\core\JSONMessage;
-use PKP\db\DAORegistry;
-use PKP\file\TemporaryFileManager;
 use PKP\plugins\ImportExportPlugin;
 
-require_once 'PublicationFormatUploader.php';
+require_once __DIR__ . '/PublicationFormatsUploadForm.php';
 
 class PublicationFormatsUploaderPlugin extends ImportExportPlugin
 {
@@ -62,59 +60,22 @@ class PublicationFormatsUploaderPlugin extends ImportExportPlugin
         parent::display($args, $request);
 
         $templateMgr = TemplateManager::getManager($request);
+        $form = new PublicationFormatsUploadForm($this);
 
         switch (array_shift($args)) {
             case 'index':
             case '':
-                $templateMgr->display($this->getTemplateResource('index.tpl'));
+                $form->display($request);
                 break;
 
             case 'publicationFormatsUploadTempFile':
-                $user = $request->getUser();
-                $temporaryFileManager = new TemporaryFileManager();
-                $temporaryFile = $temporaryFileManager->handleUpload('uploadedFile', $user->getId());
-                if ($temporaryFile) {
-                    $json = new JSONMessage(true);
-                    $json->setAdditionalAttributes([
-                        'temporaryFileId' => $temporaryFile->getId(),
-                    ]);
-                } else {
-                    $json = new JSONMessage(false, __('common.uploadFailed'));
-                }
+                $json = $form->uploadTemporaryFile($request);
                 header('Content-Type: application/json');
                 return $json->getString();
 
             case 'publicationFormatsUploadFile':
-                if (!$request->checkCSRF()) {
-                    throw new Exception('CSRF mismatch!');
-                }
-
-                $temporaryFileId = $request->getUserVar('temporaryFileId');
-                $temporaryFileDao = DAORegistry::getDAO('TemporaryFileDAO');
-                $user = $request->getUser();
-                $temporaryFile = $temporaryFileDao->getTemporaryFile($temporaryFileId, $user->getId());
-                if (!$temporaryFile) {
-                    $templateMgr->assign('errors', [
-                        __('plugins.importexport.publicationFormatsUploader.error.selectFile'),
-                    ]);
-                    $templateMgr->assign('successMessages', []);
-                    $json = new JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('results.tpl')));
-                    header('Content-Type: application/json');
-                    return $json->getString();
-                }
-
-                $uploader = new PublicationFormatUploader(
-                    $temporaryFile->getFilePath(),
-                    new ZipArchive()
-                );
-                try {
-                    $results = $uploader->uploadFile();
-                } finally {
-                    (new TemporaryFileManager())->deleteById(
-                        (int) $temporaryFile->getId(),
-                        (int) $user->getId()
-                    );
-                }
+                $form->readInputData();
+                $results = $form->execute();
                 $templateMgr->assign($results);
 
                 $json = new JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('results.tpl')));
