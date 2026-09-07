@@ -11,7 +11,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "plugins.generic.publicationFormatsUploader.displayName"
-msgstr "Cargador de formatos de publicación"
+msgstr "Carga de formatos de publicación"
 
 msgid "plugins.generic.publicationFormatsUploader.description"
 msgstr "Carga por lotes archivos de prueba para formatos de publicación en OMP."
@@ -35,7 +35,7 @@ msgid "plugins.generic.publicationFormatsUploader.error.selectFile"
 msgstr "Seleccione un archivo para cargar."
 
 msgid "plugins.generic.publicationFormatsUploader.error.pluginDisabled"
-msgstr "Active el complemento Cargador de formatos de publicación antes de usar esta acción."
+msgstr "Active el complemento Carga de formatos de publicación antes de usar esta acción."
 
 msgid "plugins.generic.publicationFormatsUploader.error.ambiguousFormat"
 msgstr "Más de un formato de publicación se llama '{$extension}'. No se modificó ningún formato."
