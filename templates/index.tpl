@@ -4,39 +4,56 @@
  * Copyright (c) 2022+ publicacionesacademicas.es
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
- * Modal file upload form for the Publication Formats Uploader plugin.
+ * File upload form for GalleysUploader plugin.
  *}
 
-<script>
-	$(function() {ldelim}
-		$('#publicationFormatsUploadForm').pkpHandler(
-			'$.pkp.controllers.form.FileUploadFormHandler',
-			{ldelim}
-				$uploader: $('#plupload'),
-				uploaderOptions: {ldelim}
-					uploadUrl: {url|json_encode router=PKP\core\PKPApplication::ROUTE_COMPONENT op="manage" category=$pluginCategory plugin=$pluginName verb="uploadTemporaryFile" escape=false},
-					baseUrl: {$baseUrl|json_encode}
-				{rdelim}
-			{rdelim}
-		);
-	{rdelim});
-</script>
+{extends file="layouts/backend.tpl"}
 
-<form
-	class="pkp_form"
-	id="publicationFormatsUploadForm"
-	method="post"
-	action="{url router=PKP\core\PKPApplication::ROUTE_COMPONENT op="manage" category=$pluginCategory plugin=$pluginName verb="uploadFile"}"
->
-	{csrf}
-	{include file="controllers/notification/inPlaceNotification.tpl" notificationId="publicationFormatsUploadNotification"}
+{block name="page"}
+	<h1 class="app__pageHeading">
+		{translate key="plugins.importexport.galleysUploader.displayName"}
+	</h1>
 
-	{fbvFormArea id="publicationFormatsUpload"}
-		{fbvFormSection title="plugins.generic.publicationFormatsUploader.instructions" required=true}
-			{fbvElement type="hidden" id="temporaryFileId" value=""}
-			{include file="controllers/fileUploadContainer.tpl" id="plupload"}
-		{/fbvFormSection}
-	{/fbvFormArea}
+	<script type="text/javascript">
+		$(function() {ldelim}
+		$('#importExportTabs').pkpHandler('$.pkp.controllers.TabHandler');
+		{rdelim});
+	</script>
 
-	{fbvFormButtons submitText="plugins.generic.publicationFormatsUploader.upload"}
-</form>
+	<div id="importExportTabs">
+		<ul>
+			<li><a href="#import-tab">{translate key="plugins.importexport.galleysUploader.settings"}</a></li>
+		</ul>
+		<div id="import-tab">
+			<script type="text/javascript">
+				$(function() {ldelim}
+				// Attach the form handler.
+				$('#galleysUploadForm').pkpHandler('$.pkp.controllers.form.FileUploadFormHandler',
+					{ldelim}
+					$uploader: $('#plupload'),
+					uploaderOptions: {ldelim}
+						uploadUrl: {plugin_url|json_encode path="galleysUploadTempFile" escape=false},
+						baseUrl: {$baseUrl|json_encode}
+					{rdelim}
+					{rdelim}
+				);
+				{rdelim});
+			</script>
+			<form id="galleysUploadForm" class="pkp_form" action="{plugin_url path="galleysUploadFile"}" method="post">
+				{csrf}
+				{fbvFormArea id="importForm"}
+				{* Container for uploaded file *}
+				<input type="hidden" name="temporaryFileId" id="temporaryFileId" value="" />
+
+				{fbvFormArea id="file"}
+				{fbvFormSection title="plugins.importexport.galleysUploader.instructions"}
+				{include file="controllers/fileUploadContainer.tpl" id="plupload"}
+				{/fbvFormSection}
+				{/fbvFormArea}
+
+				{fbvFormButtons submitText="plugins.importexport.galleysUploader.upload" hideCancel="false"}
+				{/fbvFormArea}
+			</form>
+		</div>
+	</div>
+{/block}
