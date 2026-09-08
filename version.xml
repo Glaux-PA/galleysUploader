@@ -12,7 +12,7 @@
         <application>publicationFormatsUploader</application>
         <type>plugins.generic</type>
         <release>3.5.0.0</release>
-        <date>2026-09-01</date>
+        <date>2026-09-08</date>
         <lazy-load>1</lazy-load>
         <class>PublicationFormatsUploaderPlugin</class>
 </version>
